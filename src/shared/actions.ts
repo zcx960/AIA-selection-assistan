@@ -107,6 +107,8 @@ export function mergeSettings(current: AppSettings, patch: SettingsPatch): AppSe
       typeof rest.webSearchEnabled === 'boolean' ? rest.webSearchEnabled : current.webSearchEnabled,
     actionWindowWidth: clampInt(rest.actionWindowWidth ?? current.actionWindowWidth, 320, 1600, defaultSettings.actionWindowWidth),
     actionWindowHeight: clampInt(rest.actionWindowHeight ?? current.actionWindowHeight, 240, 1200, defaultSettings.actionWindowHeight),
+    chatWindowWidth: rest.chatWindowWidth != null ? clampInt(rest.chatWindowWidth, 360, 2000, 440) : current.chatWindowWidth,
+    chatWindowHeight: rest.chatWindowHeight != null ? clampInt(rest.chatWindowHeight, 360, 2000, 580) : current.chatWindowHeight,
     fontFamily: typeof (rest.fontFamily ?? current.fontFamily) === 'string' ? (rest.fontFamily ?? current.fontFamily) : '',
     fontSize: clampInt(rest.fontSize ?? current.fontSize, 10, 28, defaultSettings.fontSize),
     autoLaunch: typeof (rest.autoLaunch ?? current.autoLaunch) === 'boolean' ? (rest.autoLaunch ?? current.autoLaunch) : false,
@@ -144,7 +146,7 @@ function normalizeProviderSettings(provider: Partial<ProviderSettings> | Provide
     ...defaultProviderTemplate.provider,
     ...provider,
     apiType: normalizeProviderApiType(provider.apiType),
-    temperature: 1
+    temperature: provider.temperature ?? 1
   }
 }
 
@@ -218,7 +220,9 @@ function normalizeActionItems(actions: unknown): ActionItem[] {
       promptTemplate: normalizeOptionalString(candidate.promptTemplate),
       searchUrlTemplate: normalizeOptionalString(candidate.searchUrlTemplate),
       providerTemplateId: normalizeOptionalString(candidate.providerTemplateId),
+      model: normalizeOptionalString(candidate.model),
       reasoning: normalizeReasoning(candidate.reasoning),
+      webSearch: typeof candidate.webSearch === 'boolean' ? candidate.webSearch : undefined,
       shortcut: normalizeOptionalString(candidate.shortcut)
     })
   }
