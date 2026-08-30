@@ -339,7 +339,12 @@ function registerIpc(): void {
         systemPrompt,
         controller.signal,
         (delta) => {
-          event.sender.send(IPC.AiChunk, { requestId: request.requestId, type: 'delta', text: delta })
+          if (delta.content) {
+            event.sender.send(IPC.AiChunk, { requestId: request.requestId, type: 'delta', text: delta.content })
+          }
+          if (delta.reasoning) {
+            event.sender.send(IPC.AiChunk, { requestId: request.requestId, type: 'reasoning', reasoning: delta.reasoning })
+          }
         },
         request.reasoning ?? 'on',
         { fetcher: providerFetch }

@@ -52,7 +52,12 @@ describe('OpenAI-compatible stream parser', () => {
 
   it('parses text deltas from SSE events', () => {
     const event = 'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n'
-    expect(parseOpenAIStreamEvent(event)).toBe('hello')
+    expect(parseOpenAIStreamEvent(event)).toEqual({ content: 'hello' })
+  })
+
+  it('parses reasoning deltas from SSE events', () => {
+    const event = 'data: {"choices":[{"delta":{"reasoning_content":"let me think"}}]}\n\n'
+    expect(parseOpenAIStreamEvent(event)).toEqual({ reasoning: 'let me think' })
   })
 
   it('returns null for done events', () => {
@@ -61,7 +66,12 @@ describe('OpenAI-compatible stream parser', () => {
 
   it('parses anthropic text deltas from SSE events', () => {
     const event = 'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"hello"}}\n\n'
-    expect(parseAnthropicStreamEvent(event)).toBe('hello')
+    expect(parseAnthropicStreamEvent(event)).toEqual({ content: 'hello' })
+  })
+
+  it('parses anthropic thinking deltas from SSE events', () => {
+    const event = 'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"hmm"}}\n\n'
+    expect(parseAnthropicStreamEvent(event)).toEqual({ reasoning: 'hmm' })
   })
 
   it('lists sorted model ids and filters invalid model entries', async () => {
@@ -130,7 +140,7 @@ describe('OpenAI-compatible stream parser', () => {
       [{ role: 'user', text: 'explain this' }],
       'system',
       new AbortController().signal,
-      (delta) => deltas.push(delta),
+      (delta) => deltas.push(delta.content ?? ''),
       'high'
     )
 

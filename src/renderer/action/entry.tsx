@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { buildSearchUrl, interpolatePrompt } from '@shared/actions'
 import type { ActionItem, ActionPayload, AiChunkPayload, AppSettings } from '@shared/types'
 import { MarkdownView } from '../Markdown'
+import { ReasoningLine, ReasoningSummary } from '../ReasoningLine'
 import { Icon } from '../icons'
 import { useSettings } from '../useSettings'
 import { useThemeMode } from '../useThemeMode'
@@ -18,6 +19,12 @@ interface ChatTurn {
   pending?: boolean
   error?: string
   searchQuery?: string
+  /** Accumulated chain-of-thought streamed before the answer. */
+  reasoning?: string
+  /** Wall-clock ms when the first reasoning fragment arrived. */
+  reasoningStart?: number
+  /** Seconds spent thinking, frozen when the first content delta lands. */
+  reasoningTime?: number
 }
 
 type Translator = (key: string) => string
@@ -87,6 +94,13 @@ function useActionStream(action: ActionItem, t: Translator) {
         const last = { ...next[next.length - 1] }
         if (chunk.type === 'delta') {
           last.text += chunk.text ?? ''
+          if (last.reasoningStart !== undefined && last.reasoningTime === undefined) {
+            last.reasoningTime = (Date.now() - last.reasoningStart) / 1000
+          }
+          last.pending = true
+        } else if (chunk.type === 'reasoning') {
+          last.reasoning = (last.reasoning ?? '') + (chunk.reasoning ?? '')
+          if (last.reasoningStart === undefined) last.reasoningStart = Date.now()
           last.pending = true
         } else if (chunk.type === 'status') {
           last.searchQuery = chunk.text ?? ''
@@ -189,10 +203,18 @@ function ChatTurns({
                   {isZh ? `🔍 联网搜索：${turn.searchQuery}` : `🔍 Web search: ${turn.searchQuery}`}
                 </div>
               )}
+              {turn.text && turn.reasoningTime !== undefined && (
+                <ReasoningSummary seconds={turn.reasoningTime} label={isZh ? '思考了' : 'Thought for'} />
+              )}
               {turn.text ? (
                 <MarkdownView>{turn.text}</MarkdownView>
               ) : turn.pending && showThinking ? (
-                <span className="thinking-indicator">{t('preparing')}</span>
+                <ReasoningLine
+                  reasoning={turn.reasoning}
+                  pending={turn.pending}
+                  preparing={t('preparing')}
+                  label={isZh ? '思考中' : 'Thinking…'}
+                />
               ) : null}
               {turn.error && <div className="error">{turn.error}</div>}
             </div>

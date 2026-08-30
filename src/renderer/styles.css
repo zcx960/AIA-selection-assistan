@@ -1173,6 +1173,50 @@ html[data-theme='dark'] .titlebar button:hover {
   }
 }
 
+/* Grok-style live chain-of-thought: shimmering label + reasoning tail
+ * wrapped inside a few-rows window, vertically pinned to the newest text. */
+.reasoning-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  justify-self: start;
+  max-width: 100%;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.reasoning-line .thinking-indicator {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 560;
+}
+
+.reasoning-line__text {
+  flex: 1;
+  min-width: 0;
+  max-height: 4.65em;
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: normal;
+  word-break: break-word;
+  color: color-mix(in srgb, var(--muted) 90%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 16px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 16px);
+  scrollbar-width: none;
+}
+
+.reasoning-line__text::-webkit-scrollbar {
+  display: none;
+}
+
+/* Collapsed post-thinking note above the answer. */
+.reasoning-summary {
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .result {
   color: var(--text);
   line-height: 1.58;

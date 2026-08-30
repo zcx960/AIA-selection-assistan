@@ -64,7 +64,12 @@ async function readProviderError(response: Response): Promise<string> {
   return `Provider request failed (${response.status}): ${body || response.statusText}`
 }
 
-export function parseOpenAIStreamEvent(raw: string): string | null {
+export interface StreamDelta {
+  content?: string
+  reasoning?: string
+}
+
+export function parseOpenAIStreamEvent(raw: string): StreamDelta | null {
   const lines = raw
     .split('\n')
     .map((line) => line.trim())
@@ -73,16 +78,37 @@ export function parseOpenAIStreamEvent(raw: string): string | null {
   for (const line of lines) {
     const payload = line.slice(5).trim()
     if (!payload || payload === '[DONE]') return null
-    const parsed = JSON.parse(payload) as {
-      choices?: Array<{ delta?: { content?: string }; message?: { content?: string } }>
+    try {
+      const parsed = JSON.parse(payload) as {
+        choices?: Array<{
+          delta?: {
+            content?: string
+            reasoning_content?: string
+            reasoning?: string
+            thinking?: string
+          }
+          message?: { content?: string }
+        }>
+      }
+      const delta = parsed.choices?.[0]?.delta
+      if (!delta) continue
+      const content = delta.content ?? parsed.choices?.[0]?.message?.content
+      const reasoning = delta.reasoning_content ?? delta.reasoning ?? delta.thinking
+      if (typeof content === 'string' || typeof reasoning === 'string') {
+        const result: StreamDelta = {}
+        if (typeof content === 'string') result.content = content
+        if (typeof reasoning === 'string') result.reasoning = reasoning
+        return result
+      }
+    } catch {
+      // Incomplete or malformed JSON chunk — skip silently
+      continue
     }
-    const text = parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.message?.content
-    if (typeof text === 'string') return text
   }
   return null
 }
 
-export function parseAnthropicStreamEvent(raw: string): string | null {
+export function parseAnthropicStreamEvent(raw: string): StreamDelta | null {
   const lines = raw
     .split('\n')
     .map((line) => line.trim())
@@ -92,19 +118,29 @@ export function parseAnthropicStreamEvent(raw: string): string | null {
     const payload = line.slice(5).trim()
     if (!payload) return null
 
-    const parsed = JSON.parse(payload) as {
-      type?: string
-      delta?: { type?: string; text?: string }
-    }
+    try {
+      const parsed = JSON.parse(payload) as {
+        type?: string
+        delta?: { type?: string; text?: string; thinking?: string }
+      }
 
-    if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta' && parsed.delta.text) {
-      return parsed.delta.text
+      if (parsed.type === 'content_block_delta' && parsed.delta) {
+        if (parsed.delta.type === 'text_delta' && parsed.delta.text) {
+          return { content: parsed.delta.text }
+        }
+        if (parsed.delta.type === 'thinking_delta' && parsed.delta.thinking) {
+          return { reasoning: parsed.delta.thinking }
+        }
+      }
+    } catch {
+      // Incomplete or malformed JSON chunk — skip silently
+      continue
     }
   }
   return null
 }
 
-function parseProviderStreamEvent(apiType: ProviderApiType, raw: string): string | null {
+function parseProviderStreamEvent(apiType: ProviderApiType, raw: string): StreamDelta | null {
   return apiType === 'anthropic' ? parseAnthropicStreamEvent(raw) : parseOpenAIStreamEvent(raw)
 }
 
@@ -144,7 +180,7 @@ export async function streamChatCompletion(
   prompt: string,
   systemPrompt: string,
   signal: AbortSignal,
-  onDelta: (delta: string) => void
+  onDelta: (delta: StreamDelta) => void
 ): Promise<void> {
   return streamChatMessages(provider, [{ role: 'user', text: prompt }], systemPrompt, signal, onDelta)
 }
@@ -185,7 +221,7 @@ export async function streamChatMessages(
   messages: AiMessageInput[],
   systemPrompt: string,
   signal: AbortSignal,
-  onDelta: (delta: string) => void,
+  onDelta: (delta: StreamDelta) => void,
   reasoning: ReasoningMode = 'on',
   options: ProviderRequestOptions = {}
 ): Promise<void> {

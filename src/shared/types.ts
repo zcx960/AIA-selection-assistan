@@ -103,8 +103,10 @@ export interface AiStreamRequest {
 
 export interface AiChunkPayload {
   requestId: string
-  type: 'delta' | 'done' | 'error' | 'status'
+  type: 'delta' | 'reasoning' | 'done' | 'error' | 'status'
   text?: string
+  /** Streamed chain-of-thought fragment (type === 'reasoning' only). */
+  reasoning?: string
   error?: string
 }
 

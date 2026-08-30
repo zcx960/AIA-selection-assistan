@@ -1,6 +1,6 @@
 {
   "name": "selection-assistant-lite",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "轻量跨平台 AI 划词助手，支持 OpenAI-compatible 与 Anthropic API。",
   "main": "out/main/index.js",
   "author": "selection-assistant-lite contributors",
