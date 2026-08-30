@@ -27,7 +27,7 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 除了划词，它还内置区域截图：拖拽框选一块屏幕，可以画线、画箭头标注，笔刷粗细随手拉滑杆调整。截完可以保存 PNG、复制到剪贴板、钉在桌面，或者直接交给 AI 识图。钉住的截图能滚轮缩放、拖拽搬位置、调整透明度，右键还能再次唤起 AI 识图。
 
-返回窗口本身就是个独立对话——回答完了可以接着追问，AI 看得到之前的上下文；输出是流式的，可以随时打断。需要查实时信息时打开联网搜索，AI 会自己抓网页，并在回答里附上来源链接。
+返回窗口本身就是个独立对话——回答完了可以接着追问，AI 看得到之前的上下文；输出是流式的，可以随时打断。思考型模型回复时，思维链会实时显示：推理内容自动换行，在几行高的窗口里滚动展示最新进展，结束后折叠成「思考了 Xs」的摘要，不占正文篇幅。需要查实时信息时打开联网搜索，AI 会自己抓网页，并在回答里附上来源链接。
 
 模型这边可接 **OpenAI-compatible**（自建 endpoint、OpenAI、DeepSeek、月之暗面、智谱、各类第三方代理都行）或 **Anthropic** 官方 API。多套模板可一键切换 endpoint / Key / 模型，每个动作也可以指定自己的模板；API Key 只存在本地。界面支持亮 / 暗 / 跟随系统主题，中英双语都有，结果窗口的默认尺寸、字体和字号也可以在设置里调整。
 
@@ -35,18 +35,20 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 ## 下载
 
-最新发布版本 **v0.6.2**，可点击直接下载对应平台的安装包：
+最新发布版本 **v0.7.0**，可点击直接下载对应平台的安装包：
 
 | 平台 | 包类型 | 下载 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.6.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-0.6.2-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.6.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-0.6.2-arm64-mac.zip) |
-| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.6.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-Setup-0.6.2.exe) |
-| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.6.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-Portable-0.6.2.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.7.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-0.7.0-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.7.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-0.7.0-arm64-mac.zip) |
+| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.7.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-Setup-0.7.0.exe) |
+| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.7.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-Portable-0.7.0.exe) |
 
-### v0.6.2 更新
+### v0.7.0 更新
 
-- 修复划词悬浮工具栏显示时可能抢占原应用文本焦点的问题，降低与鼠标手势、剪贴板增强等工具的冲突概率
+- AI 回复时实时显示思维链：思考过程自动换行、在约三行高度的窗口内滚动并始终钉在最新内容，结束后折叠为「思考了 Xs」摘要
+- 支持 OpenAI-compatible 的 `reasoning_content` / `reasoning` / `thinking` 流式字段与 Anthropic 的 `thinking_delta` 事件
+- AI 对话、划词动作结果窗口与 AI 识图窗口均生效；模型不输出思维链时自动退化为原有的「正在思考」提示
 
 历史版本与全部产物：[GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases)。
 
@@ -61,6 +63,7 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 - 支持系统 TTS 朗读选中文本，macOS 与 Windows 均可用
 - 内置区域截图，可直接钉图、复制、保存或交给 AI 识图
 - 独立 AI 对话窗口，支持多轮上下文与流式追问
+- AI 回复时实时显示思维链，结束后折叠为思考耗时摘要
 - 支持多套 API 模板，并可按动作指定模型与思考强度
 - 支持自定义动作：新增、重命名、换图标、编辑提示词、排序、删除
 - 支持动作输入快捷键：按快捷键弹出输入框，输入文本后直接运行指定动作
@@ -112,6 +115,7 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 - 独立的对话窗口，与悬浮工具栏的单次结果窗解耦
 - 支持多轮上下文：问完一题后可以接着追问，AI 能看到之前的对话
 - 流式输出，回答边生成边显示，可随时中断
+- 思考型模型的思维链实时可见：最新推理内容自动换行滚动，开始回答后折叠为「思考了 Xs」
 - Markdown 代码块支持一键复制，长代码行会自动换行
 - 窗口支持「钉住」常驻；关闭窗口即销毁会话，避免上下文意外保留
 

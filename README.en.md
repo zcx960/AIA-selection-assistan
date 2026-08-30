@@ -27,7 +27,7 @@ AIA Selection Assistant lives in your menu bar / system tray. Highlight some tex
 
 It also ships a built-in region screenshot tool: drag to select an area, annotate with pen or arrows (brush size is a quick slider away), then save as PNG, copy to clipboard, pin to the desktop, or hand the image straight to AI for vision-based analysis. Pinned screenshots support wheel zoom, drag-to-move, opacity tweaking, and a right-click menu to re-send them to AI.
 
-The result window is its own conversation — keep asking follow-ups, AI sees the earlier turns, and output streams in so you can interrupt any time. Flip on web search when you need fresh information; AI will fetch pages itself and cite the sources at the bottom of the answer.
+The result window is its own conversation — keep asking follow-ups, AI sees the earlier turns, and output streams in so you can interrupt any time. With thinking models, the chain of thought streams in live: the latest reasoning wraps and scrolls inside a few-row window, then collapses into a "Thought for Xs" summary once the answer starts. Flip on web search when you need fresh information; AI will fetch pages itself and cite the sources at the bottom of the answer.
 
 For models you can point it at either **OpenAI-compatible** endpoints (your own endpoint, OpenAI, DeepSeek, Moonshot, Zhipu, any third-party proxy) or the **Anthropic** API. Multiple templates let you swap endpoint / key / model in one click, and individual actions can bind to a specific template. API keys stay on disk. Light / dark / system theme modes are supported, the UI ships in English and Chinese, and the result window's default size, font family, and font size can be customized.
 
@@ -35,18 +35,20 @@ Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.6.2** - grab the installer for your platform:
+Latest published release **v0.7.0** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.6.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-0.6.2-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.6.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-0.6.2-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.6.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-Setup-0.6.2.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.6.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.6.2/AIA-Selection-Assistant-Portable-0.6.2.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.7.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-0.7.0-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.7.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-0.7.0-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.7.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-Setup-0.7.0.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.7.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.7.0/AIA-Selection-Assistant-Portable-0.7.0.exe) |
 
-### v0.6.2 highlights
+### v0.7.0 highlights
 
-- Fixes the floating selection toolbar so it no longer takes focus from the app that owns the selected text, reducing conflicts with mouse gesture and clipboard helper tools
+- Live chain-of-thought display: model reasoning streams in, auto-wraps, and scrolls inside a few-row window pinned to the newest text, then collapses into a "Thought for Xs" summary
+- Supports OpenAI-compatible `reasoning_content` / `reasoning` / `thinking` stream fields and Anthropic `thinking_delta` events
+- Active in the chat window, selection-action results, and AI vision windows; falls back to the plain "Thinking..." shimmer when the model emits no reasoning
 
 For older versions and full asset lists, see [GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases).
 
@@ -61,6 +63,7 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - System TTS can read selected text aloud on macOS and Windows
 - Built-in region screenshot: pin to desktop, copy, save, or hand it to AI for image understanding
 - Standalone AI chat window with multi-turn context and streaming follow-ups
+- Live chain-of-thought display while the model thinks, collapsing into a time-spent summary
 - Multiple API templates, with per-action model template and reasoning intensity
 - Custom actions: add, rename, change icons, edit prompts, reorder, and delete
 - Per-action input shortcuts: press a shortcut, type text, and run that action directly
@@ -112,6 +115,7 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - Dedicated chat window, decoupled from the toolbar's one-shot result popup
 - Multi-turn context: keep asking follow-ups and the model sees the previous turns
 - Streaming output, rendered as it arrives, with interrupt support at any time
+- Live chain-of-thought for thinking models: newest reasoning wraps and scrolls, then folds into "Thought for Xs"
 - Markdown code blocks include a copy button and wrap long lines
 - The window can be pinned on top; closing it destroys the session so context never leaks
 
