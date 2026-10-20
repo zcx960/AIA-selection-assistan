@@ -54,6 +54,8 @@ For the headline v0.8.0 features (replace selection, pre-selection context, imag
 
 For older versions and full asset lists, see [GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases).
 
+> The Windows portable build unpacks itself into the system temp directory (`%TEMP%`) on every run. Its login item now points at the `.exe` you actually double-clicked rather than the unpacked temp copy, but portable still isn't a good fit for permanent launch-at-login: if the temp directory gets cleaned up you have to run the `.exe` again to recover. Use the installer if you want it to come up reliably at login.
+
 > This README describes the current `main` branch. If you download a Release build, use that version's actual binaries as the source of truth.
 
 > The macOS builds are not code-signed — on first launch allow them via *System Settings → Privacy & Security*.
