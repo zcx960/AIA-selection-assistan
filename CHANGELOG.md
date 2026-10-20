@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.2 - 2026-10-20
+
+### Fixed
+
+- 修复 Windows 便携版**开机自启指向临时解压目录**导致的启动失败（#9）。`setLoginItemSettings` 在 Windows 下默认取 `process.execPath`，而便携版的这个路径是每次运行重新解压出来的 `%TEMP%\<随机目录>`；系统清理临时目录后，登录时自启启动到的是一份残缺副本，主进程在 ESM 解析 `package.json` 阶段抛 `ENOENT`，连窗口都起不来。现在便携版改用 electron-builder 注入的 `PORTABLE_EXECUTABLE_FILE`（用户实际双击的 `.exe`）注册自启项，安装版没有该环境变量、行为不变。旧版本写坏的注册表项会在新版本启动时自动覆写。
+- 打包流程新增原生模块完整性校验（`scripts/verify-asar-unpack.mjs`，接在 `afterPack` 的 prune 之后）：解析 `app.asar` 头部元数据，校验 `selection-hook` 与 `uiohook-napi` 的 `package.json`、JS 入口可解析、目标平台的 `.node` 实际落在 `app.asar.unpacked`，任一缺失直接让构建失败，避免问题包出厂。
+
+### Changed
+
+- README 补充便携版限制说明：便携版每次运行都解压到 `%TEMP%`，长期挂开机自启建议改用安装版。
+
 ## 0.8.1 - 2026-10-12
 
 ### Fixed

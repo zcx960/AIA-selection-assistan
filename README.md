@@ -35,22 +35,21 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 ## 下载
 
-最新发布版本 **v0.8.1**，可点击直接下载对应平台的安装包：
+最新发布版本 **v0.8.2**，可点击直接下载对应平台的安装包：
 
 | 平台 | 包类型 | 下载 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-0.8.1-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-0.8.1-arm64-mac.zip) |
-| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.8.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-Setup-0.8.1.exe) |
-| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.8.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-Portable-0.8.1.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64-mac.zip) |
+| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Setup-0.8.2.exe) |
+| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Portable-0.8.2.exe) |
 
-### v0.8.1 更新
+### v0.8.2 更新
 
-- 修复 Windows 上窗口标题栏与任务栏图标**四角显示白块**的问题（#4）
-- 原因是图标本身是圆角矩形、四角透明，而 Windows 直接用位图绘制窗口与任务栏图标、不做圆角遮罩，透明区域被填成白色；同时原 `.ico` 的五个尺寸全是 PNG 压缩条目，而标题栏 / 任务栏走的老式图标路径对它支持不佳
-- 现在 Windows 改用满幅不透明的专用图标（同一套图形，四角合成为底色），`.ico` 小尺寸改存 32bpp BMP 条目；macOS 与托盘图标保持原样的圆角透明
+- 修复 Windows **便携版开机自启指向临时解压目录**导致的启动失败（#9）：便携版每次运行都会把自己解压到 `%TEMP%\<随机目录>`，而自启项原先跟着 `process.execPath` 写成了这个临时路径；临时目录被系统清理后，下次登录启动到的是一份残缺副本，主进程在 ESM 解析 `package.json` 阶段就抛 `ENOENT`，连窗口都起不来。现在自启项指向你双击的那个 `.exe`，旧版本写坏的注册表项会在新版本启动时自动覆写
+- 打包流程加入原生模块完整性校验：`selection-hook` / `uiohook-napi` 的 `package.json`、JS 入口或目标平台的 `.node` 若没正确落到 `app.asar.unpacked`，构建直接失败，避免问题包出厂
 
-v0.8.0 的主要更新（替换回填、预选上下文、对话发图等）见 [CHANGELOG](./CHANGELOG.md)。
+v0.8.1 的主要更新（Windows 图标四角白块修复）见 [CHANGELOG](./CHANGELOG.md)。
 
 历史版本与全部产物：[GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases)。
 

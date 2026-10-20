@@ -35,22 +35,21 @@ Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.8.1** - grab the installer for your platform:
+Latest published release **v0.8.2** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-0.8.1-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-0.8.1-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.8.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-Setup-0.8.1.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.8.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.1/AIA-Selection-Assistant-Portable-0.8.1.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Setup-0.8.2.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Portable-0.8.2.exe) |
 
-### v0.8.1 highlights
+### v0.8.2 highlights
 
-- Fixed the **white corners around the app icon** in the Windows title bar and taskbar (#4)
-- The artwork is a rounded square with transparent corners, but Windows paints the window and taskbar icons straight from the bitmap without applying a corner mask, so those transparent corners were filled in white; on top of that, all five sizes in the `.ico` were PNG-compressed entries, and the legacy icon paths used by the title bar and taskbar handle those poorly
-- Windows now uses a dedicated full-bleed opaque icon (same artwork, corners flattened onto the background) with 32bpp BMP entries for the small sizes; macOS and the tray keep the original rounded transparent artwork
+- Fixed the **Windows portable login item pointing at the temp unpack directory** (#9). Portable unpacks itself into `%TEMP%\<random>` on every run, and the login item followed `process.execPath` into that throw-away copy; once system cleanup swept the temp directory, the next login started a half-deleted tree and the main process threw `ENOENT` while resolving `package.json`, before any window existed. The login item now targets the `.exe` you actually launched, and a stale entry written by an older version is overwritten on the next start
+- Packaging now verifies the native modules: if `selection-hook` / `uiohook-napi`'s `package.json`, JS entry, or the target platform's `.node` is not correctly placed under `app.asar.unpacked`, the build fails instead of shipping a broken installer
 
-For the headline v0.8.0 features (replace selection, pre-selection context, images in chat), see the [CHANGELOG](./CHANGELOG.md).
+For the v0.8.1 fix (white icon corners on Windows), see the [CHANGELOG](./CHANGELOG.md).
 
 For older versions and full asset lists, see [GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases).
 
