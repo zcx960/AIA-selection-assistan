@@ -317,9 +317,24 @@ function registerShortcuts(): void {
 // Register (or clear) the OS login item. We only touch it in a packaged build —
 // registering the dev electron.exe path into the user's startup would be wrong.
 // '--hidden' is what tells a login-triggered launch to stay in the tray.
+//
+// Windows defaults the login item to process.execPath. For the portable build
+// that path is the throw-away unpack directory under %TEMP% (`<random>\…exe`),
+// which is recreated per launch and swept by system cleanup — a Run entry there
+// is a dead shortcut at best. electron-builder exports the .exe the user
+// actually double-clicked as PORTABLE_EXECUTABLE_FILE, so register that instead;
+// installed builds don't set the variable and keep the execPath default.
+const portableExecutablePath = isWin ? process.env.PORTABLE_EXECUTABLE_FILE?.trim() : undefined
+
 function applyAutoLaunch(enabled: boolean): void {
   if (!app.isPackaged) return
-  app.setLoginItemSettings({ openAtLogin: enabled, openAsHidden: enabled, args: ['--hidden'] })
+  const loginItem: Parameters<typeof app.setLoginItemSettings>[0] = {
+    openAtLogin: enabled,
+    openAsHidden: enabled,
+    args: ['--hidden']
+  }
+  if (portableExecutablePath) loginItem.path = portableExecutablePath
+  app.setLoginItemSettings(loginItem)
 }
 
 function applySelectionState(settings = getSettings()): void {
