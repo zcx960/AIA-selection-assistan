@@ -2,14 +2,15 @@ import '../styles.css'
 import './recording.css'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import type { RecordingRect } from '@shared/recording'
+import { recordingMaskPieces, type RecordingOverlayInit, type RecordingRect } from '@shared/recording'
 import { useSettings } from '../useSettings'
 import { Icon } from '../icons'
 
 function Overlay() {
   const { settings } = useSettings()
   const zh = settings.language === 'zh-CN'
-  const [image, setImage] = React.useState('')
+  const [init, setInit] = React.useState<RecordingOverlayInit | null>(null)
+  const image = init?.mode === 'select' ? init.imageDataUrl : ''
   const [rect, setRect] = React.useState<RecordingRect | null>(null)
   const [dragging, setDragging] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
@@ -24,9 +25,10 @@ function Overlay() {
   }
   React.useEffect(() => {
     document.body.classList.add('recording-overlay-page')
-    void window.assistantLite.recording.overlayReady().then((payload) => setImage(payload.imageDataUrl)).catch((error) => setError(String(error)))
+    void window.assistantLite.recording.overlayReady().then(setInit).catch((error) => setError(String(error)))
   }, [])
   React.useEffect(() => {
+    if (init?.mode !== 'select') return
     const key = (event: KeyboardEvent) => {
       if (event.key === 'Escape') void window.assistantLite.recording.cancel()
       if (event.key === 'Enter' && !(event.target as HTMLElement).closest('button')) {
@@ -36,7 +38,20 @@ function Overlay() {
     }
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
-  }, [rect, busy])
+  }, [init, rect, busy])
+  if (init?.mode === 'recording') {
+    const selection = init.selection
+    return <div className="recording-live-mask" aria-hidden="true">
+      {recordingMaskPieces(selection).map((piece, index) => <div key={index} className="recording-live-mask-piece" style={{
+        left: `${piece.x}%`, top: `${piece.y}%`, width: `${piece.width}%`, height: `${piece.height}%`
+      }} />)}
+      {selection && <div className="recording-live-region" style={{
+        left: `${selection.x / selection.viewportWidth * 100}%`, top: `${selection.y / selection.viewportHeight * 100}%`,
+        width: `${selection.width / selection.viewportWidth * 100}%`, height: `${selection.height / selection.viewportHeight * 100}%`
+      }} />}
+    </div>
+  }
+  if (!init && !error) return null
   const point = (event: React.PointerEvent) => ({ x: Math.max(0, Math.min(innerWidth, event.clientX)), y: Math.max(0, Math.min(innerHeight, event.clientY)) })
   return <div className="recording-selector" style={{ backgroundImage: image ? `url("${image}")` : undefined }}
     onPointerDown={(event) => {

@@ -10,9 +10,9 @@ export interface RecordingSelection extends RecordingRect {
   viewportHeight: number
 }
 
-export interface RecordingOverlayInit {
-  imageDataUrl: string
-}
+export type RecordingOverlayInit =
+  | { mode: 'select'; imageDataUrl: string }
+  | { mode: 'recording'; selection?: RecordingSelection }
 
 export interface RecordingInit {
   sourceId: string
@@ -36,6 +36,22 @@ export function validateRecordingSelection(value: RecordingSelection): Recording
     throw new Error('Invalid recording region')
   }
   return value
+}
+
+/** Outside-only mask pieces, in percentages of the display viewport. */
+export function recordingMaskPieces(selection?: RecordingSelection): RecordingRect[] {
+  if (!selection) return [{ x: 0, y: 0, width: 100, height: 100 }]
+  validateRecordingSelection(selection)
+  const x = selection.x / selection.viewportWidth * 100
+  const y = selection.y / selection.viewportHeight * 100
+  const width = selection.width / selection.viewportWidth * 100
+  const height = selection.height / selection.viewportHeight * 100
+  return [
+    { x: 0, y: 0, width: 100, height: y },
+    { x: 0, y: y + height, width: 100, height: Math.max(0, 100 - y - height) },
+    { x: 0, y, width: x, height },
+    { x: x + width, y, width: Math.max(0, 100 - x - width), height }
+  ].filter((piece) => piece.width > 0 && piece.height > 0)
 }
 
 /** Map viewport coordinates to the actual stream, including mixed-DPI displays. */

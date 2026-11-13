@@ -13,6 +13,7 @@ import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { IPC } from '@shared/ipc'
 import type { AppSettings } from '@shared/types'
+import { validateRecordingSelection, type RecordingSelection } from '@shared/recording'
 import { loadRenderer } from './loadRenderer'
 import { isMac } from './platform'
 
@@ -28,7 +29,7 @@ export interface OverlayInitPayload {
   imageHeight: number
 }
 
-export type OverlayAction = 'explain' | 'save' | 'copy' | 'pin'
+export type OverlayAction = 'explain' | 'save' | 'copy' | 'pin' | 'record'
 
 export interface OverlayConfirmPayload {
   displayId: number
@@ -84,7 +85,8 @@ export class ScreenshotService {
     private getSettings: () => AppSettings,
     private preloadPath: string,
     private rendererDir: string,
-    private windowIcon: Electron.NativeImage
+    private windowIcon: Electron.NativeImage,
+    private startRecording: (displayId: number, selection: RecordingSelection) => Promise<void>
   ) {}
 
   registerIpc(): void {
@@ -104,9 +106,12 @@ export class ScreenshotService {
         event.sender.send(IPC.ScreenshotOverlayInit, payload)
       }
     })
-    ipcMain.handle(IPC.ScreenshotOverlayConfirm, (_event, payload: OverlayConfirmPayload) =>
-      this.handleOverlayConfirm(payload)
-    )
+    ipcMain.handle(IPC.ScreenshotOverlayConfirm, (event, payload: OverlayConfirmPayload) => {
+      if (event.sender !== this.overlayWindow?.webContents || payload?.displayId !== this.currentCapture?.display.id) {
+        throw new Error('Invalid screenshot window')
+      }
+      return this.handleOverlayConfirm(payload)
+    })
     ipcMain.handle(IPC.ScreenshotOverlayCancel, () => this.closeOverlay())
     ipcMain.handle(IPC.ScreenshotSave, (_event, dataUrl: string) => this.saveImage(dataUrl))
     ipcMain.handle(IPC.ScreenshotCopy, (_event, dataUrl: string) => this.copyImage(dataUrl))
@@ -237,6 +242,19 @@ export class ScreenshotService {
 
   private async handleOverlayConfirm(payload: OverlayConfirmPayload): Promise<void> {
     const capture = this.currentCapture
+    if (payload.action === 'record' && capture) {
+      const selection = validateRecordingSelection({ x: payload.x, y: payload.y, width: payload.width, height: payload.height,
+        viewportWidth: payload.viewportWidth, viewportHeight: payload.viewportHeight })
+      this.closeOverlay()
+      this.currentCapture = null
+      try { await this.startRecording(capture.display.id, selection) }
+      catch (error) {
+        void dialog.showMessageBox({ type: 'error',
+          title: this.getSettings().language === 'zh-CN' ? '无法开始录屏' : 'Cannot start recording',
+          message: error instanceof Error ? error.message : String(error) })
+      }
+      return
+    }
     this.closeOverlay()
     if (!capture) return
 

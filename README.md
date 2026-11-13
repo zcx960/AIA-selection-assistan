@@ -37,14 +37,21 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 ## 下载
 
-最新发布版本 **v0.10.0**，可点击直接下载对应平台的安装包：
+最新发布版本 **v0.10.1**，可点击直接下载对应平台的安装包：
 
 | 平台 | 包类型 | 下载 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64-mac.zip) |
-| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Setup-0.10.0.exe) |
-| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Portable-0.10.0.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64-mac.zip) |
+| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Setup-0.10.1.exe) |
+| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Portable-0.10.1.exe) |
+
+### v0.10.1 更新
+
+- 录屏时选区正常显示、外侧实时压暗，边框放在录制范围外；遮罩穿透鼠标，停止、取消或异常时自动清理。
+- 截图工具栏新增「录屏」按钮，直接录制当前框选区域，保留 3 秒倒计时，无需再次选择；截图标注不会进入视频。
+- 截图工具栏优化按钮点击区域、键盘操作、窄屏换行和边缘定位。
+- 174 项测试通过，并在 macOS 验证实际录制、底层应用操作及 H.264 MP4 输出。
 
 ### v0.10.0 更新
 
@@ -143,6 +150,8 @@ v0.8.2 的 Windows 便携版自启修复及更早更新见 [CHANGELOG](./CHANGEL
 ### 区域录屏
 
 - 点击设置页右上角的录屏图标，或从菜单栏 / 托盘选择「区域录屏」
+- 也可先截图框选，在截图工具栏点击「录屏」，直接对当前区域倒计时录制，无需再次框选；截图标注不会进入视频
+- 录制时选区内保持正常亮度，选区外压暗，并用外侧红框标出边界；遮罩不拦截鼠标，可继续操作屏幕，停止或取消后自动移除
 - 默认快捷键为 `CommandOrControl+Shift+R`，可在「划词 → 快捷键」修改；再次按下停止录制
 - 在任意显示器拖动框选，或选择整个屏幕；`Enter` 开始，`Esc` 取消，倒计时 3 秒后录制
 - 控制面板放在所选区域外；整屏录制无可用空间时自动隐藏，可从托盘或快捷键停止

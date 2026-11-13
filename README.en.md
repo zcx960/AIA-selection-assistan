@@ -37,14 +37,21 @@ Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.10.0** - grab the installer for your platform:
+Latest published release **v0.10.1** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Setup-0.10.0.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Portable-0.10.0.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Setup-0.10.1.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Portable-0.10.1.exe) |
+
+### v0.10.1 highlights
+
+- Keep the recording area at normal brightness while dimming its exterior in real time. The outside border stays out of the video; the mask passes mouse input through and clears on stop, cancellation, or errors.
+- Click **Record** in the screenshot toolbar to record the current selection after the three-second countdown, without selecting again. Screenshot annotations are excluded.
+- Larger toolbar targets, keyboard activation, wrapping for smaller displays, and improved placement near screen edges.
+- 174 tests pass, with native macOS validation of capture, underlying app interaction, and H.264 MP4 output.
 
 ### v0.10.0 highlights
 
@@ -143,6 +150,8 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 ### Region recording
 
 - Click the recording icon in Settings or choose **Record a region** from the tray menu
+- Or select a screenshot region and click **Record** in its toolbar to record that exact region after the countdown, without selecting again. Screenshot annotations are excluded
+- During capture, the selected area stays at normal brightness while the exterior is dimmed and an outside red outline marks the boundary. The mask lets mouse input pass through and disappears on stop or cancellation
 - `CommandOrControl+Shift+R` starts / stops recording; configure it in Selection → Shortcuts
 - Drag on any display, or select the entire display. Press `Enter` to confirm and `Esc` to cancel; recording begins after a three-second countdown
 - Controls stay outside the crop and hide when there is no space during fullscreen capture; stop from the tray or shortcut

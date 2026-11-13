@@ -22,13 +22,14 @@ interface Session {
 export class RecordingService {
   private phase: Phase = 'idle'
   private overlays = new Map<BrowserWindow, { display: Electron.Display; source: Electron.DesktopCapturerSource }>()
+  private masks = new Map<BrowserWindow, { selection?: RecordingSelection }>()
   private window: BrowserWindow | null = null
   private session: Session | null = null
   private generation = 0
   private disposed = false
   private stopTimer: ReturnType<typeof setTimeout> | null = null
   private onDisplayChanged = (_event: Electron.Event, display: Electron.Display) => {
-    if (this.session?.displayId === display.id) this.stop()
+    if (this.session && (this.session.displayId === display.id || this.masks.size)) this.stop()
     for (const [win, overlay] of this.overlays) {
       if (overlay.display.id === display.id) { this.overlays.delete(win); win.destroy() }
     }
@@ -52,15 +53,18 @@ export class RecordingService {
   }
 
   registerIpc(): void {
+    screen.on('display-added', this.onDisplayChanged)
     screen.on('display-removed', this.onDisplayChanged)
     screen.on('display-metrics-changed', this.onDisplayChanged)
     powerMonitor.on('lock-screen', this.onLock)
     ipcMain.handle(IPC.RecordingStart, () => this.toggle())
     ipcMain.handle(IPC.RecordingOverlayReady, (event) => {
       const win = BrowserWindow.fromWebContents(event.sender)
+      const mask = win && this.masks.get(win)
+      if (mask) return { mode: 'recording', selection: mask.selection }
       const overlay = win && this.overlays.get(win)
       if (!overlay) throw new Error('Invalid region selector')
-      return { imageDataUrl: overlay.source.thumbnail.toDataURL() }
+      return { mode: 'select', imageDataUrl: overlay.source.thumbnail.toDataURL() }
     })
     ipcMain.handle(IPC.RecordingSelect, (event, selection: RecordingSelection) => this.select(event, selection))
     ipcMain.handle(IPC.RecordingCancel, (event) => {
@@ -108,6 +112,7 @@ export class RecordingService {
     ipcMain.handle(IPC.RecordingFailed, (event) => {
       this.assertRecorder(event)
       this.clearStopTimer()
+      this.closeMasks()
       this.setPhase('error')
       this.showResultWindow()
     })
@@ -144,6 +149,16 @@ export class RecordingService {
     if (this.phase === 'recording' || this.phase === 'preparing') { this.stop(); return }
     if (this.phase === 'selecting') { this.reset(); return }
     if (this.phase === 'processing') { this.showResultWindow(); return }
+    await this.startSelection()
+  }
+
+  async startRegion(displayId: number, selection: RecordingSelection): Promise<void> {
+    validateRecordingSelection(selection)
+    if (this.active) throw new Error(this.text('请先停止当前录屏。', 'Stop the current recording first.'))
+    await this.startSelection({ displayId, selection })
+  }
+
+  private async startSelection(preset?: { displayId: number; selection: RecordingSelection }): Promise<void> {
     this.reset()
     this.setPhase('selecting')
     const generation = this.generation
@@ -162,6 +177,14 @@ export class RecordingService {
         })
       ]).finally(() => clearTimeout(captureTimer))
       if (generation !== this.generation || this.disposed) return
+      if (preset) {
+        const display = displays.find((item) => item.id === preset.displayId)
+        const source = sources.find((item) => item.display_id === String(preset.displayId)) ?? (displays.length === 1 ? sources[0] : undefined)
+        if (!display || !source) throw new Error(this.text('所选显示器已不可用，请重新截图。', 'The selected display is unavailable. Take another screenshot.'))
+        await this.prepare(display, source, preset.selection)
+        void this.pruneOldRecordings().catch(console.warn)
+        return
+      }
       for (const display of displays) {
         const source = sources.find((item) => item.display_id === String(display.id)) ?? (displays.length === 1 ? sources[0] : undefined)
         if (!source || source.thumbnail.isEmpty()) continue
@@ -197,6 +220,7 @@ export class RecordingService {
     if (this.phase === 'selecting') { this.reset(); return }
     if (this.phase === 'preparing' && !this.window) { this.reset(); return }
     if ((this.phase === 'recording' || this.phase === 'preparing') && this.window && !this.window.isDestroyed()) {
+      this.closeMasks()
       this.window.webContents.send(IPC.RecordingStop)
     }
   }
@@ -206,6 +230,10 @@ export class RecordingService {
     const overlay = win && this.overlays.get(win)
     if (!overlay || this.phase !== 'selecting') throw new Error('Region selection is no longer active')
     validateRecordingSelection(selection)
+    await this.prepare(overlay.display, overlay.source, selection)
+  }
+
+  private async prepare(display: Electron.Display, source: Electron.DesktopCapturerSource, selection: RecordingSelection): Promise<void> {
     this.setPhase('preparing')
     const generation = this.generation
     try {
@@ -214,15 +242,16 @@ export class RecordingService {
       const directory = await mkdtemp(join(root, 'recording-'))
       const file = await open(join(directory, 'capture.mp4'), 'w')
       if (generation !== this.generation || this.disposed) { await file.close(); return }
-      const bounds = overlay.display.bounds
+      const bounds = display.bounds
       const region = { x: bounds.x + selection.x / selection.viewportWidth * bounds.width,
         y: bounds.y + selection.y / selection.viewportHeight * bounds.height,
         width: selection.width / selection.viewportWidth * bounds.width,
         height: selection.height / selection.viewportHeight * bounds.height }
       const controls = recordingControlsBounds(region, screen.getAllDisplays().map((display) => display.workArea))
-      this.session = { displayId: overlay.display.id, directory, file, writes: Promise.resolve(), writeError: null,
-        init: { sourceId: overlay.source.id, selection, stopShortcut: this.getSettings().shortcuts.recordScreen, controlsHidden: !controls } }
+      this.session = { displayId: display.id, directory, file, writes: Promise.resolve(), writeError: null,
+        init: { sourceId: source.id, selection, stopShortcut: this.getSettings().shortcuts.recordScreen, controlsHidden: !controls } }
       this.closeOverlays()
+      this.showMasks(display.id, selection)
       this.window = new BrowserWindow({
         ...(controls ?? { width: 380, height: 100 }), show: false, frame: false, resizable: false,
         movable: false, alwaysOnTop: true, skipTaskbar: true, icon: this.icon,
@@ -230,6 +259,7 @@ export class RecordingService {
         webPreferences: { preload: this.preloadPath, contextIsolation: true, nodeIntegration: false, sandbox: false, backgroundThrottling: false }
       })
       const recorderWindow = this.window
+      recorderWindow.setAlwaysOnTop(true, 'screen-saver')
       recorderWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
       recorderWindow.on('close', (closeEvent) => {
         if (this.phase === 'recording' || this.phase === 'preparing' || this.phase === 'processing') {
@@ -260,6 +290,7 @@ export class RecordingService {
       throw new Error('Invalid recording dimensions')
     }
     this.clearStopTimer()
+    this.closeMasks()
     this.setPhase('processing')
     this.showResultWindow()
     try {
@@ -305,11 +336,38 @@ export class RecordingService {
     for (const win of this.overlays.keys()) if (!win.isDestroyed()) win.destroy()
     this.overlays.clear()
   }
+  private showMasks(displayId: number, selection: RecordingSelection): void {
+    for (const display of screen.getAllDisplays()) {
+      const win = new BrowserWindow({
+        ...display.bounds, show: false, frame: false, transparent: true, backgroundColor: '#00000000',
+        hasShadow: false, focusable: false, resizable: false, movable: false, minimizable: false,
+        maximizable: false, fullscreenable: false, alwaysOnTop: true, skipTaskbar: true, enableLargerThanScreen: true,
+        ...(process.platform === 'darwin' ? { type: 'panel', hiddenInMissionControl: true } : {}),
+        webPreferences: { preload: this.preloadPath, contextIsolation: true, nodeIntegration: false, sandbox: false }
+      })
+      this.masks.set(win, { selection: display.id === displayId ? selection : undefined })
+      win.setIgnoreMouseEvents(true)
+      win.setAlwaysOnTop(true, 'pop-up-menu')
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      win.once('ready-to-show', () => {
+        if (win.isDestroyed()) return
+        win.setBounds(display.bounds)
+        win.showInactive()
+      })
+      win.on('closed', () => { this.masks.delete(win) })
+      loadRenderer(win, this.rendererDir, 'recordingOverlay.html')
+    }
+  }
+  private closeMasks(): void {
+    for (const win of this.masks.keys()) if (!win.isDestroyed()) win.destroy()
+    this.masks.clear()
+  }
   private clearStopTimer(): void { if (this.stopTimer) clearTimeout(this.stopTimer); this.stopTimer = null }
   private reset(): void {
     this.generation++
     this.clearStopTimer()
     this.closeOverlays()
+    this.closeMasks()
     const session = this.session
     this.session = null
     if (session) void session.writes.catch(() => {}).then(() => session.file?.close()).catch(console.warn)
@@ -331,6 +389,7 @@ export class RecordingService {
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
+    screen.removeListener('display-added', this.onDisplayChanged)
     screen.removeListener('display-removed', this.onDisplayChanged)
     screen.removeListener('display-metrics-changed', this.onDisplayChanged)
     powerMonitor.removeListener('lock-screen', this.onLock)

@@ -106,8 +106,9 @@ const selectionService = new SelectionService(getSettings, preloadPath, renderer
   // sees console.error from the service either way.
   if (tray && isWin) tray.displayBalloon({ title, content: message })
 })
-const screenshotService = new ScreenshotService(getSettings, preloadPath, rendererDir, appIcon)
 const recordingService = new RecordingService(getSettings, preloadPath, rendererDir, appIcon, refreshTrayMenu)
+const screenshotService = new ScreenshotService(getSettings, preloadPath, rendererDir, appIcon,
+  (displayId, selection) => recordingService.startRegion(displayId, selection))
 const speechService = new SpeechService()
 
 function getTrayIcon(): Electron.NativeImage {

@@ -26,7 +26,7 @@ interface Point {
   y: number
 }
 
-type OverlayAction = 'explain' | 'save' | 'copy' | 'pin'
+type OverlayAction = 'explain' | 'save' | 'copy' | 'pin' | 'record'
 type Tool = 'select' | 'pen' | 'arrow'
 type HandleDir = 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se'
 
@@ -202,6 +202,9 @@ function OverlayApp(): React.JSX.Element | null {
     save: isZh ? '保存' : 'Save',
     copy: isZh ? '复制' : 'Copy',
     explain: isZh ? 'AI 识图' : 'AI Explain',
+    record: isZh ? '录屏' : 'Record',
+    recordHint: isZh ? '录制当前区域（不包含截图标注）' : 'Record this region (without screenshot annotations)',
+    recordTooSmall: isZh ? '录屏区域至少需要 16 × 16' : 'Recording needs a region of at least 16 × 16',
     pen: isZh ? '画笔' : 'Pen',
     arrow: isZh ? '箭头' : 'Arrow',
     undo: isZh ? '撤销' : 'Undo',
@@ -215,6 +218,12 @@ function OverlayApp(): React.JSX.Element | null {
   const [tool, setTool] = React.useState<Tool>('select')
   const [annotations, setAnnotations] = React.useState<Annotation[]>([])
   const [annotationWidth, setAnnotationWidth] = React.useState(ANNOTATION_WIDTH_DEFAULT)
+  const [busy, setBusy] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const submitting = React.useRef(false)
+  const toolbarRef = React.useRef<HTMLDivElement>(null)
+  const [toolbarHeight, setToolbarHeight] = React.useState(52)
+  const [toolbarWidth, setToolbarWidth] = React.useState(480)
   const [viewport, setViewport] = React.useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
     height: typeof window !== 'undefined' ? window.innerHeight : 0
@@ -225,6 +234,17 @@ function OverlayApp(): React.JSX.Element | null {
     void window.assistantLite.screenshot.overlayReady()
     return off
   }, [])
+
+  React.useLayoutEffect(() => {
+    if (!toolbarRef.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      const bounds = entry.target.getBoundingClientRect()
+      setToolbarHeight(bounds.height)
+      setToolbarWidth(bounds.width)
+    })
+    observer.observe(toolbarRef.current)
+    return () => observer.disconnect()
+  }, [!!committed])
 
   React.useEffect(() => {
     const onResize = (): void =>
@@ -240,34 +260,48 @@ function OverlayApp(): React.JSX.Element | null {
 
   const confirm = React.useCallback(
     async (rect: Rect, action: OverlayAction) => {
-      if (!init) return
+      if (!init || submitting.current) return
       if (rect.width < 4 || rect.height < 4) return
+      if (action === 'record' && (rect.width < 16 || rect.height < 16)) return
+      submitting.current = true
+      setBusy(true)
+      setError('')
+      try {
+        let imageDataUrl: string | undefined
+        if (action !== 'record' && annotations.length > 0) {
+          const result = await rasterize(init, rect, annotations)
+          if (result) imageDataUrl = result
+        }
 
-      let imageDataUrl: string | undefined
-      if (annotations.length > 0) {
-        const result = await rasterize(init, rect, annotations)
-        if (result) imageDataUrl = result
+        await window.assistantLite.screenshot.overlayConfirm({
+          displayId: init.displayId,
+          x: Math.round(rect.x),
+          y: Math.round(rect.y),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          action,
+          imageDataUrl
+        })
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error))
+      } finally {
+        submitting.current = false
+        setBusy(false)
       }
-
-      void window.assistantLite.screenshot.overlayConfirm({
-        displayId: init.displayId,
-        x: Math.round(rect.x),
-        y: Math.round(rect.y),
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        action,
-        imageDataUrl
-      })
     },
     [init, annotations]
   )
 
   React.useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
+      if (submitting.current) return
       if (event.key === 'Escape') cancel()
-      else if (event.key === 'Enter' && committed) void confirm(committed, 'explain')
+      else if (event.key === 'Enter' && committed && !(event.target as HTMLElement).closest('button, input')) {
+        event.preventDefault()
+        void confirm(committed, 'explain')
+      }
       else if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
         setAnnotations((current) => current.slice(0, -1))
       } else if (event.key === '1') setTool('select')
@@ -282,7 +316,7 @@ function OverlayApp(): React.JSX.Element | null {
 
   // ----- Mouse handlers (background) ------------------------------------
   const beginDragOnBackground = (event: React.MouseEvent): void => {
-    if (event.button !== 0) return
+    if (event.button !== 0 || submitting.current) return
     const pos = { x: event.clientX, y: event.clientY }
     // If we have a committed rect and the user clicked inside it,
     // route the action depending on the current tool.
@@ -429,12 +463,13 @@ function OverlayApp(): React.JSX.Element | null {
 
   const actionToolbarStyle = ((): { top: number; right: number } | null => {
     if (!rect || !committed) return null
-    const TOOLBAR_H = 40
+    const TOOLBAR_H = toolbarHeight
     const PAD = 8
     const belowSpace = viewport.height - (rect.y + rect.height)
     const showBelow = belowSpace >= TOOLBAR_H + PAD
-    const top = showBelow ? rect.y + rect.height + PAD : Math.max(PAD, rect.y - TOOLBAR_H - PAD)
-    const right = Math.max(PAD, viewport.width - (rect.x + rect.width))
+    const top = Math.max(PAD, Math.min(viewport.height - TOOLBAR_H - PAD,
+      showBelow ? rect.y + rect.height + PAD : rect.y - TOOLBAR_H - PAD))
+    const right = Math.max(PAD, Math.min(viewport.width - toolbarWidth - PAD, viewport.width - (rect.x + rect.width)))
     return { top, right }
   })()
 
@@ -595,6 +630,8 @@ function OverlayApp(): React.JSX.Element | null {
       {committed && actionToolbarStyle && (
         <div
           className="toolbar-root screenshot-overlay__toolbar"
+          ref={toolbarRef}
+          aria-busy={busy}
           style={actionToolbarStyle}
           onMouseDown={(e) => {
             e.stopPropagation()
@@ -643,6 +680,15 @@ function OverlayApp(): React.JSX.Element | null {
             <Icon name="copy" />
           </button>
           <button
+            className="toolbar-button screenshot-overlay__record-button"
+            onClick={() => void confirm(committed, 'record')}
+            title={committed.width < 16 || committed.height < 16 ? labels.recordTooSmall : labels.recordHint}
+            aria-label={labels.recordHint}
+            disabled={busy || committed.width < 16 || committed.height < 16}>
+            <Icon name="video" />
+            <span>{labels.record}</span>
+          </button>
+          <button
             className="toolbar-button toolbar-button--primary"
             onClick={() => void confirm(committed, 'explain')}
             title={labels.explain}>
@@ -657,7 +703,8 @@ function OverlayApp(): React.JSX.Element | null {
         <div
           className="screenshot-overlay__size-slider"
           style={{
-            top: actionToolbarStyle.top + 42,
+            top: actionToolbarStyle.top + toolbarHeight + 40 < viewport.height
+              ? actionToolbarStyle.top + toolbarHeight + 8 : Math.max(8, actionToolbarStyle.top - 40),
             right: actionToolbarStyle.right
           }}
           // Only stop propagation so the overlay doesn't react to the click.
@@ -678,6 +725,7 @@ function OverlayApp(): React.JSX.Element | null {
       )}
 
       {!committed && <div className="screenshot-overlay__hint">{labels.hint}</div>}
+      {error && <div className="screenshot-overlay__error" role="alert">{error}</div>}
     </div>
   )
 }

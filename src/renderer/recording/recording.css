@@ -1,6 +1,11 @@
 html, body, #root { width: 100%; height: 100%; margin: 0; }
 body { -webkit-font-smoothing: antialiased; }
+html:has(.recording-overlay-page), .recording-overlay-page { background: transparent; color-scheme: normal; }
 .recording-overlay-page { overflow: hidden; user-select: none; }
+.recording-live-mask { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.recording-live-mask-piece { position: absolute; background: rgba(0, 0, 0, 0.45); }
+/* Outline is entirely outside the crop, so the recorded picture stays clean. */
+.recording-live-region { position: absolute; outline: 2px solid #ff665c; }
 .recording-selector { position: fixed; inset: 0; background-size: 100% 100%; cursor: crosshair; color: #fff; }
 .recording-selector-wash { position: absolute; inset: 0; background: #0007; pointer-events: none; }
 .recording-region { position: absolute; border: 2px solid #ff665c; box-sizing: border-box; pointer-events: none; }

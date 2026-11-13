@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { recordingControlsBounds, recordingCrop, validateRecordingSelection } from './recording'
+import { recordingControlsBounds, recordingCrop, recordingMaskPieces, validateRecordingSelection } from './recording'
 
 describe('recording region mapping', () => {
   const selection = { x: 100, y: 50, width: 301, height: 201, viewportWidth: 1440, viewportHeight: 900 }
@@ -20,6 +20,25 @@ describe('recording region mapping', () => {
   })
   it.each([{ x: NaN }, { width: 0 }, { viewportWidth: 0 }, { x: -1 }, { width: Infinity }, { x: 1400 }])('rejects malformed region %s', (override) => {
     expect(() => validateRecordingSelection({ ...selection, ...override })).toThrow()
+  })
+})
+
+describe('live recording mask', () => {
+  it('leaves the selected area completely clear, including fractional DPI coordinates', () => {
+    const selection = { x: 137.5, y: 51.5, width: 801.5, height: 501.5, viewportWidth: 1440, viewportHeight: 900 }
+    const pieces = recordingMaskPieces(selection)
+    const x = selection.x / 1440 * 100, y = selection.y / 900 * 100
+    const w = selection.width / 1440 * 100, h = selection.height / 900 * 100
+    for (const piece of pieces) {
+      const overlapW = Math.max(0, Math.min(piece.x + piece.width, x + w) - Math.max(piece.x, x))
+      const overlapH = Math.max(0, Math.min(piece.y + piece.height, y + h) - Math.max(piece.y, y))
+      expect(overlapW * overlapH).toBeCloseTo(0)
+    }
+    expect(pieces.reduce((area, piece) => area + piece.width * piece.height, 0)).toBeCloseTo(10000 - w * h)
+  })
+  it('keeps fullscreen clear and dims displays outside the selection completely', () => {
+    expect(recordingMaskPieces({ x: 0, y: 0, width: 1920, height: 1080, viewportWidth: 1920, viewportHeight: 1080 })).toEqual([])
+    expect(recordingMaskPieces()).toEqual([{ x: 0, y: 0, width: 100, height: 100 }])
   })
 })
 
