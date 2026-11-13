@@ -1,4 +1,5 @@
 import { defaultProviderTemplate, defaultSettings } from './defaults'
+import { normalizeAcpConfig } from './acp'
 import { DEFAULT_STRUCTURED_OUTPUT_MODE, type StructuredOutputMode } from './structuredOutput'
 import type {
   ActionItem,
@@ -242,7 +243,7 @@ function normalizeThemeMode(mode: unknown): ThemeMode {
 }
 
 function normalizeProviderApiType(type: unknown): ProviderApiType {
-  return type === 'anthropic' ? 'anthropic' : 'openai'
+  return type === 'acp' ? 'acp' : type === 'anthropic' ? 'anthropic' : 'openai'
 }
 
 function normalizeProviderSettings(provider: Partial<ProviderSettings> | ProviderSettings): ProviderSettings {
@@ -250,6 +251,7 @@ function normalizeProviderSettings(provider: Partial<ProviderSettings> | Provide
     ...defaultProviderTemplate.provider,
     ...provider,
     apiType: normalizeProviderApiType(provider.apiType),
+    ...(provider.apiType === 'acp' ? { acp: normalizeAcpConfig(provider.acp) } : {}),
     temperature: 1
   }
 }

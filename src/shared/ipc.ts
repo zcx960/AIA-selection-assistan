@@ -21,6 +21,7 @@ export const IPC = {
   AiAbort: 'ai:abort',
   AiListModels: 'ai:list-models',
   AiTestModel: 'ai:test-model',
+  AcpDetect: 'acp:detect',
 
   SpeechSpeak: 'speech:speak',
   SpeechStop: 'speech:stop',

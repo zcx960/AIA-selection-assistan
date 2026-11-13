@@ -1,6 +1,7 @@
-import { app, BrowserWindow, Menu, Tray, clipboard, globalShortcut, ipcMain, nativeImage, net, shell } from 'electron'
+import { app, BrowserWindow, Menu, Tray, clipboard, dialog, globalShortcut, ipcMain, nativeImage, net, shell } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { existsSync } from 'node:fs'
+import { mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { buildAssistantSystemPrompt, buildContextInjectionPrompt, resolveProvider } from '@shared/actions'
@@ -10,6 +11,8 @@ import { APP_ICON_DATA_URL, APP_TRAY_DATA_URL } from '@shared/brand'
 import type { AiChunkPayload, AiStreamRequest, SettingsPatch } from '@shared/types'
 import { listModels, streamChatMessages, testModel, type ProviderFetch } from './ai/OpenAICompatibleClient'
 import { decideSearch, formatSearchContext, searchExa } from './ai/WebSearch'
+import { closeAcpConnections, connectAgent, streamAcp, type PermissionHandler } from './acp/client'
+import { detectAgents } from './acp/discovery'
 import { abortStream, findRacingStreams, registerStream, unregisterStream } from './aiStreamRegistry'
 import { appendStatsRecord, type StatsRecord } from './statsStore'
 import { startHotkeyCapture, stopHotkeyCapture } from './hotkeyCapture'
@@ -45,6 +48,24 @@ const CHAT_SHADOW_PADDING = 18
 const CHAT_DEFAULT_WIDTH = 440
 const CHAT_DEFAULT_HEIGHT = 580
 const providerFetch: ProviderFetch = (url, init) => net.fetch(url, init)
+
+async function acpWorkspace(): Promise<string> {
+  const directory = join(app.getPath('userData'), 'acp-workspace')
+  await mkdir(directory, { recursive: true })
+  return directory
+}
+
+const requestAcpPermission: PermissionHandler = async (request, signal) => {
+  const option = request.options?.find((item: { kind: string }) => item.kind === 'allow_once')
+  if (!option || signal.aborted) return undefined
+  const zh = getSettings().language === 'zh-CN'
+  const result = await dialog.showMessageBox({ type: 'question', signal,
+    title: zh ? '本地 Agent 请求权限' : 'Local agent permission',
+    message: String(request.toolCall?.title ?? (zh ? '允许本次工具调用？' : 'Allow this tool call?')).slice(0, 500),
+    detail: JSON.stringify(request.toolCall?.rawInput ?? {}, null, 2).slice(0, 3000),
+    buttons: [zh ? '拒绝' : 'Deny', zh ? '仅允许这一次' : 'Allow once'], defaultId: 0, cancelId: 0 })
+  return result.response === 1 && !signal.aborted ? option.optionId : undefined
+}
 
 function createNativeImageFromFile(paths: string[], fallbackDataUrl: string): Electron.NativeImage {
   for (const path of paths) {
@@ -362,6 +383,10 @@ function applySelectionState(settings = getSettings()): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle(IPC.AcpDetect, (event) => {
+    if (event.sender !== settingsWindow?.webContents) throw new Error('Open Settings to scan local agents')
+    return detectAgents()
+  })
   selectionService.registerIpc()
   screenshotService.registerIpc()
   recordingService.registerIpc()
@@ -521,7 +546,7 @@ function registerIpc(): void {
       // Optional: web search pre-flight. Let the model decide; if yes, query Exa
       // (via its public hosted MCP — no key required) and inject the results
       // into the system prompt before the main stream.
-      if (settings.webSearchEnabled) {
+      if (settings.webSearchEnabled && provider.apiType !== 'acp') {
         const lastUser = [...messages].reverse().find((m) => m.role === 'user')
         const userText = lastUser?.text?.trim() ?? ''
         if (userText) {
@@ -550,20 +575,27 @@ function registerIpc(): void {
         }
       }
 
-      await streamChatMessages(
+      const onDelta = (delta: { content?: string; reasoning?: string }) => {
+        if (delta.content) {
+          statsResponseText += delta.content
+          safeSend({ requestId: request.requestId, type: 'delta', text: delta.content })
+        }
+        if (delta.reasoning) safeSend({ requestId: request.requestId, type: 'reasoning', reasoning: delta.reasoning })
+      }
+      if (provider.apiType === 'acp') {
+        safeSend({ requestId: request.requestId, type: 'status', text: settings.language === 'zh-CN' ? '正在连接本地 Agent…' : 'Connecting to local agent…' })
+        const connection = await connectAgent(provider, await acpWorkspace(), controller.signal, requestAcpPermission)
+        try {
+          await connection.selectModel(provider.model)
+          await streamAcp(connection, messages, systemPrompt, onDelta,
+            (text) => safeSend({ requestId: request.requestId, type: 'status', text }))
+        } finally { connection.close() }
+      } else await streamChatMessages(
         provider,
         messages,
         systemPrompt,
         controller.signal,
-        (delta) => {
-          if (delta.content) {
-            statsResponseText += delta.content
-            safeSend({ requestId: request.requestId, type: 'delta', text: delta.content })
-          }
-          if (delta.reasoning) {
-            safeSend({ requestId: request.requestId, type: 'reasoning', reasoning: delta.reasoning })
-          }
-        },
+        onDelta,
         request.reasoning ?? 'on',
         {
           fetcher: providerFetch,
@@ -595,11 +627,18 @@ function registerIpc(): void {
   ipcMain.handle(IPC.AiAbort, (_event, requestId: string) => {
     abortStream(requestId)
   })
-  ipcMain.handle(IPC.AiListModels, (_event, providerTemplateId?: string) =>
-    listModels(resolveProvider(getSettings(), providerTemplateId), { fetcher: providerFetch })
-  )
+  ipcMain.handle(IPC.AiListModels, async (_event, providerTemplateId?: string) => {
+    const provider = resolveProvider(getSettings(), providerTemplateId)
+    if (provider.apiType !== 'acp') return listModels(provider, { fetcher: providerFetch })
+    const connection = await connectAgent(provider, await acpWorkspace(), new AbortController().signal)
+    try { return connection.models() } finally { connection.close() }
+  })
   ipcMain.handle(IPC.AiTestModel, async (_event, providerTemplateId?: string) => {
-    await testModel(resolveProvider(getSettings(), providerTemplateId), { fetcher: providerFetch })
+    const provider = resolveProvider(getSettings(), providerTemplateId)
+    if (provider.apiType === 'acp') {
+      const connection = await connectAgent(provider, await acpWorkspace(), new AbortController().signal)
+      try { await connection.selectModel(provider.model) } finally { connection.close() }
+    } else await testModel(provider, { fetcher: providerFetch })
     return { ok: true }
   })
 }
@@ -638,6 +677,7 @@ if (!app.requestSingleInstanceLock()) {
   // isQuitting above — flip it here so close→hide windows don't block quit.
   app.on('before-quit', () => {
     isQuitting = true
+    closeAcpConnections()
     recordingService.dispose()
     selectionService.prepareExit()
   })

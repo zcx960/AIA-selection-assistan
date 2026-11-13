@@ -14,10 +14,11 @@ export type SendKeyMode = 'enter' | 'ctrlEnter' | 'shiftEnter'
 export type AppLanguage = 'zh-CN' | 'en'
 export type ThemeMode = 'system' | 'light' | 'dark'
 import type { StructuredOutputMode } from './structuredOutput'
+import type { AcpLaunchConfig } from './acp'
 
 export type { StructuredOutputMode }
 
-export type ProviderApiType = 'openai' | 'anthropic'
+export type ProviderApiType = 'openai' | 'anthropic' | 'acp'
 /** 'on' lets the model use its default; other values request explicit reasoning control. */
 export type ReasoningMode = 'on' | 'off' | 'low' | 'medium' | 'high'
 
@@ -27,6 +28,7 @@ export interface ProviderSettings {
   apiKey: string
   model: string
   temperature: number
+  acp?: AcpLaunchConfig
 }
 
 export interface ProviderTemplate {

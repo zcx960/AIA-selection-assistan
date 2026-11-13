@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '@shared/ipc'
+import type { DetectedAgent } from '@shared/acp'
 import type { RecordingInit, RecordingOverlayInit, RecordingResult, RecordingSelection } from '@shared/recording'
 import type {
   ActionPayload,
@@ -14,6 +15,9 @@ import type {
 } from '@shared/types'
 
 const api = {
+  acp: {
+    detect: (): Promise<DetectedAgent[]> => ipcRenderer.invoke(IPC.AcpDetect)
+  },
   recording: {
     start: (): Promise<void> => ipcRenderer.invoke(IPC.RecordingStart),
     overlayReady: (): Promise<RecordingOverlayInit> => ipcRenderer.invoke(IPC.RecordingOverlayReady),

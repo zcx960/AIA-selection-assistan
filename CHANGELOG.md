@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.0 - 2026-11-14
+
+### Added
+
+- 本地 Agent / ACP：自动检测常见 ACP、CLI 和适配器入口，支持 Codex、Claude Code、CodeBuddy、Pi、Antigravity、Gemini CLI、Copilot、Cursor、OpenCode、Qwen Code、Kimi、Goose、Droid、Kiro、Cline、Kilo、Junie、Devin、Grok Build、OpenClaw 等 30 类入口。
+- 通过 ACP stdio 直接连接本地 Agent，支持 ACP 初始化、会话、模型列表、流式回答、思考片段、工具状态、取消和进程清理；划词动作、聊天和图片上下文都复用已有 AI 界面。
+- ACP 配置支持命令、参数、工作目录、环境变量和逐次工具权限确认；默认拒绝 Agent 工具调用，允许时仅授予当前一次。
+- 设置页增加本地 Agent 检测卡片、适配器状态、添加服务和 ACP 连接测试。
+
+### Security
+
+- 检测只检查常见目录中的可执行文件，不启动 Agent、不读取 CLI 凭据，也不会自动安装适配器。
+- AIA 不向 ACP Agent 提供文件系统或终端客户端工具；Agent 自身的工具权限仍由 Agent 的登录、沙箱和配置决定。
+
+### Tests
+
+- 新增 16 项 ACP 传输、发现、UTF-8 分片、图片、权限、超时、中断、Windows npm 启动脚本和配置迁移测试；测试总数 169 项。
+
 ## 0.9.0 - 2026-11-13
 
 ### Added

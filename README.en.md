@@ -4,7 +4,7 @@
 
   <h1>AIA Selection Assistant</h1>
 
-  <p>Highlight text, snap a screenshot, ask AI — skip a few window switches, skip a lot of copy-pasting.</p>
+  <p>Highlight text, capture your screen, ask AI, connect local agents — skip a few window switches, skip a lot of copy-pasting.</p>
 
   <p>
     <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-2f6fed?style=flat-square" alt="Platform" />
@@ -31,20 +31,27 @@ To capture an on-screen workflow, click the recording button in Settings, select
 
 The result window is its own conversation — keep asking follow-ups, AI sees the earlier turns, and output streams in so you can interrupt any time. You can also carry selected text into the conversation as a quoted reference, or send images along: images are kept in the session history, so later follow-ups still see them. With thinking models, the chain of thought streams in live: the latest reasoning wraps and scrolls inside a few-row window, then collapses into a "Thought for Xs" summary once the answer starts. Flip on web search when you need fresh information; AI will fetch pages itself and cite the sources at the bottom of the answer.
 
-For models you can point it at either **OpenAI-compatible** endpoints (your own endpoint, OpenAI, DeepSeek, Moonshot, Zhipu, any third-party proxy) or the **Anthropic** API. Multiple templates let you swap endpoint / key / model in one click, and individual actions can bind to a specific template. API keys stay on disk. Light / dark / system theme modes are supported, the UI ships in English and Chinese, and the result window's default size, font family, and font size can be customized.
+For models you can use **OpenAI-compatible** endpoints (your own endpoint, OpenAI, DeepSeek, Moonshot, Zhipu, any third-party proxy), the **Anthropic** API, or local agents over **ACP stdio**. Multiple templates let you swap services and models in one click, and individual actions can bind to a specific template. API keys stay on disk. Light / dark / system theme modes are supported, the UI ships in English and Chinese, and the result window's default size, font family, and font size can be customized.
 
 Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.9.0** - grab the installer for your platform:
+Latest published release **v0.10.0** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.9.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.9.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Setup-0.9.0.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Portable-0.9.0.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-0.10.0-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Setup-0.10.0.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.10.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.0/AIA-Selection-Assistant-Portable-0.10.0.exe) |
+
+### v0.10.0 highlights
+
+- Local agent / ACP discovery for around 30 profiles, including Claude Code, Codex, CodeBuddy, Pi, Antigravity, Gemini CLI, Copilot, Cursor, OpenCode, Qwen, Kimi, Goose, Droid, Kiro, Cline, Kilo, and OpenClaw.
+- Connect over ACP stdio with model listing, streaming replies, reasoning, cancellation, and image context, using the existing text actions and chat windows.
+- Discovery distinguishes `available`, `adapter-needed`, `cli-only`, and `not-found`. Configure commands, arguments, working directories, environment variables, and models.
+- Agent tool requests are denied by default, with optional one-time confirmation. Scanning does not read credentials, launch agents, or download adapters.
 
 ### v0.9.0 highlights
 
@@ -72,6 +79,7 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - System TTS can read selected text aloud on macOS and Windows
 - Built-in region screenshot: pin to desktop, copy, save, or hand it to AI for image understanding
 - Region screen recording with preview, video-file clipboard copy and H.264 MP4 saving
+- Discover common local agents and use their models and login state over ACP stdio
 - Standalone AI chat window with multi-turn context and streaming follow-ups
 - Carry selected text into the conversation as a quoted reference; send images that persist in the session history
 - Replace the original selection with the Polish result in one click (Windows x64, Polish action only)
@@ -142,6 +150,17 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - Video only (no audio), 30 fps, H.264 MP4 up to 4K, with a 60-minute limit per recording
 - Temporary files stay in the app data `recordings` folder for seven days, then expire on a later recording start. Save a copy for permanent storage
 - macOS requires screen recording permission. Locking the screen or changing the recorded display stops capture
+
+### Local agents / ACP
+
+1. Scan for local agents in **Settings → API configuration**. Discovery checks PATH, Homebrew, npm/pnpm, nvm/fnm, and selected editor agent directories.
+2. `available` means a configurable ACP entry was found; `adapter-needed` means a CLI was found but needs an ACP adapter; `cli-only` means only a regular CLI was detected; `not-found` means no entry was found. Detecting a CLI does not imply native ACP support.
+3. Add a service, verify its command and arguments, optionally set its working directory and environment, then fetch models or test the connection. Custom ACP services support compatible agents outside the built-in list.
+4. Select that service in an action or chat. Sign in through the agent's terminal first; AIA does not read, copy, or manage CLI credentials. Image support depends on the agent's advertised capabilities.
+
+Claude Code and Codex commonly require an ACP adapter. Scanning does not execute commands or install packages. If you choose an adapter command such as `npx`, the first connection may download its package. CLI-only entries such as Antigravity require a separately configured compatible ACP server.
+
+Tool permission requests are denied by default. Optional confirmation grants only the current request and never permanent access. AIA exposes no file or terminal client tools, but agents may use their own tools; their configuration determines the effective permissions and sandbox. Review the launch command and working directory before connecting.
 
 ### AI Chat and Follow-up
 
@@ -222,6 +241,7 @@ Notes:
 - OpenAI-compatible: uses `/chat/completions` and `/models`
 - For OpenAI-compatible providers, enter the API root when possible, such as `https://api.example.com/v1`; if you paste a full `/chat/completions` or `/models` endpoint, the app normalizes it automatically
 - Anthropic: uses `/v1/messages` and `/v1/models`
+- Local agents / ACP: ACP v1 JSON-RPC stdio with discovery and custom launch commands
 - In Anthropic mode, you only need to enter the base URL; `/v1` is appended automatically
 
 ### API Templates
@@ -267,7 +287,7 @@ Notes:
 - Replace selection is currently Windows x64 only and covers the Polish action only
 - Linux is not a first-class supported platform yet
 - Selection position and follow-window behavior may differ in some apps or IME environments
-- The current provider layer supports OpenAI-compatible and Anthropic APIs only
+- Supports OpenAI-compatible, Anthropic, and local agents / ACP; regular CLIs need a compatible ACP entry point
 
 ## Contributing
 

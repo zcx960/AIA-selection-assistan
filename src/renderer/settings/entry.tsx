@@ -9,6 +9,8 @@ import { useThemeMode } from '../useThemeMode'
 import { useAppearance } from '../useAppearance'
 import { getActionLabel, getTranslator } from '../i18n'
 import { ProviderNameInput } from './ProviderNameInput'
+import { AcpDiscovery, AcpFields, acpTemplate } from './AcpSettings'
+import { emptyAcpConfig } from '@shared/acp'
 import type {
   ActionItem,
   ActionWindowCloseMode,
@@ -610,7 +612,9 @@ function SettingsApp() {
       setModelsByTemplate((current) => ({ ...current, [id]: models }))
       setStatusByTemplate((current) => ({
         ...current,
-        [id]: models.length ? t('modelListSuccess').replace('{{count}}', String(models.length)) : t('modelListEmpty')
+        [id]: models.length ? t('modelListSuccess').replace('{{count}}', String(models.length)) :
+          settings.providerTemplates.find((item) => item.id === id)?.provider.apiType === 'acp'
+            ? (settings.language === 'zh-CN' ? 'Agent 未公布模型列表，留空模型字段可使用它的默认模型。' : 'The agent exposes no model list. Leave the model blank to use its default.') : t('modelListEmpty')
       }))
     } catch (error) {
       setStatusByTemplate((current) => ({ ...current, [id]: error instanceof Error ? error.message : String(error) }))
@@ -624,7 +628,8 @@ function SettingsApp() {
     setStatusByTemplate((current) => ({ ...current, [id]: t('modelTestLoading') }))
     try {
       await window.assistantLite.ai.testModel(id)
-      setStatusByTemplate((current) => ({ ...current, [id]: t('modelTestSuccess') }))
+      setStatusByTemplate((current) => ({ ...current, [id]: settings.providerTemplates.find((item) => item.id === id)?.provider.apiType === 'acp'
+        ? (settings.language === 'zh-CN' ? 'ACP 握手与会话创建成功；尚未发送提示词验证推理。' : 'ACP handshake and session succeeded. No inference prompt was sent.') : t('modelTestSuccess') }))
     } catch (error) {
       setStatusByTemplate((current) => ({ ...current, [id]: error instanceof Error ? error.message : String(error) }))
     } finally {
@@ -739,6 +744,10 @@ function SettingsApp() {
     if (activeSection === 'api') {
       return (
         <div className="settings-stack">
+          <AcpDiscovery zh={settings.language === 'zh-CN'} onAdd={(agent) => {
+            const template = acpTemplate(agent)
+            void update({ providerTemplates: [...settings.providerTemplates, template] })
+          }} />
           <SettingSection title={t('providerTitle')}>
             <div className="provider-list">
               {settings.providerTemplates.map((template) => {
@@ -777,24 +786,30 @@ function SettingsApp() {
                         <span>{t('apiType')}</span>
                         <select
                           value={template.provider.apiType}
-                          onChange={(event) => updateTemplateProvider(template.id, 'apiType', event.target.value)}>
+                          onChange={(event) => {
+                            const apiType = event.target.value as 'openai' | 'anthropic' | 'acp'
+                            updateTemplate(template.id, { provider: { ...template.provider, apiType,
+                              ...(apiType === 'acp' ? { model: '', acp: template.provider.acp ?? { ...emptyAcpConfig } } : {}) } })
+                          }}>
                           <option value="openai">{t('apiTypeOpenAI')}</option>
                           <option value="anthropic">{t('apiTypeAnthropic')}</option>
+                          <option value="acp">{settings.language === 'zh-CN' ? '本地 Agent（ACP stdio）' : 'Local agent (ACP stdio)'}</option>
                         </select>
                       </label>
-                      <label className="field">
+                      {template.provider.apiType === 'acp' ? <AcpFields template={template} zh={settings.language === 'zh-CN'}
+                        onChange={(acp) => updateTemplate(template.id, { provider: { ...template.provider, acp } })} /> : <label className="field">
                         <span>{t('baseUrl')}</span>
                         <input
                           value={template.provider.baseUrl}
                           onChange={(event) => updateTemplateProvider(template.id, 'baseUrl', event.target.value)}
                         />
-                      </label>
+                      </label>}
                       {template.provider.apiType === 'anthropic' && (
                         <div className="model-status">{t('baseUrlAnthropicHint')}</div>
                       )}
                       <label className="field">
                         <div className="field-header">
-                          <span>{t('model')}</span>
+                          <span>{template.provider.apiType === 'acp' ? (settings.language === 'zh-CN' ? '模型（留空跟随 Agent 默认）' : 'Model (blank = agent default)') : t('model')}</span>
                           <div className="inline-actions">
                             <button
                               className="inline-action-button"
@@ -806,8 +821,8 @@ function SettingsApp() {
                             <button
                               className="inline-icon-button"
                               type="button"
-                              title={t('testModel')}
-                              aria-label={t('testModel')}
+                              title={template.provider.apiType === 'acp' ? (settings.language === 'zh-CN' ? '测试 ACP 连接（不发送提示词）' : 'Test ACP connection (no prompt)') : t('testModel')}
+                              aria-label={template.provider.apiType === 'acp' ? (settings.language === 'zh-CN' ? '测试 ACP 连接' : 'Test ACP connection') : t('testModel')}
                               onClick={() => testModelFor(template.id)}
                               disabled={busyTemplate !== null}>
                               <Icon name="flask-conical" size={14} />
@@ -838,14 +853,14 @@ function SettingsApp() {
                           </select>
                         </label>
                       )}
-                      <label className="field">
+                      {template.provider.apiType !== 'acp' && <label className="field">
                         <span>{t('apiKey')}</span>
                         <input
                           type="password"
                           value={template.provider.apiKey}
                           onChange={(event) => updateTemplateProvider(template.id, 'apiKey', event.target.value)}
                         />
-                      </label>
+                      </label>}
                       {status && <div className="model-status">{status}</div>}
                     </div>
                   </div>

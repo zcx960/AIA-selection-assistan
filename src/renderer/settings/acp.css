@@ -1,0 +1,23 @@
+.acp-discovery { border-radius: 16px; padding: 20px; background: var(--panel); box-shadow: 0 1px 3px #00000009, 0 0 0 1px var(--border); }
+.acp-discovery-head, .acp-agent-row, .acp-discovery-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.acp-discovery h3 { margin: 0 0 6px; font-size: 15px; text-wrap: balance; }
+.acp-discovery p, .acp-note { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.7; text-wrap: pretty; overflow-wrap: anywhere; }
+.acp-agent-row { padding: 16px 0; box-shadow: 0 1px 0 var(--border); }
+.acp-agent-row > div { min-width: 0; flex: 1; display: grid; gap: 5px; }
+.acp-agent-row strong { font-size: 13px; font-weight: 600; }
+.acp-agent-row span, .acp-agent-row small { font-size: 11px; color: var(--muted); }
+.acp-agent-row code { font-size: 11px; overflow-wrap: anywhere; color: var(--muted); }
+.acp-discovery button { flex-shrink: 0; min-height: 40px; white-space: normal; max-width: 190px; transition: background-color 150ms, scale 150ms; }
+.acp-discovery button:active { scale: 0.96; }
+.acp-discovery button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.acp-empty { padding: 20px 0; }
+.acp-discovery-footer { padding-top: 16px; align-items: flex-start; flex-wrap: wrap; }
+.acp-expand { margin-top: 12px; }
+.acp-discovery details { flex: 1; min-width: 180px; }
+.acp-discovery summary, .acp-fields summary { cursor: pointer; font-size: 12px; color: var(--muted); padding: 10px 0; }
+.acp-fields { display: grid; gap: 14px; grid-column: 1 / -1; }
+.acp-fields .field { display: grid; gap: 8px; min-width: 0; }
+.acp-fields textarea { font-family: ui-monospace, monospace; font-size: 12px; resize: vertical; min-height: 60px; }
+.acp-error { color: #c32e28 !important; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .acp-discovery-head, .acp-agent-row { align-items: flex-start; flex-direction: column; } .acp-discovery button { max-width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .acp-discovery button { transition: none; } }
