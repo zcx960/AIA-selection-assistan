@@ -4,7 +4,7 @@
 
   <h1>AIA划词助手</h1>
 
-  <p>划词、截图、问 AI——少切几次窗口，多省几次复制粘贴。</p>
+  <p>划词、截图、录屏、问 AI——少切几次窗口，多省几次复制粘贴。</p>
 
   <p>
     <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-2f6fed?style=flat-square" alt="Platform" />
@@ -27,6 +27,8 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 除了划词，它还内置区域截图：拖拽框选一块屏幕，可以画线、画箭头标注，笔刷粗细随手拉滑杆调整。截完可以保存 PNG、复制到剪贴板、钉在桌面，或者直接交给 AI 识图。钉住的截图能滚轮缩放、拖拽搬位置、调整透明度，右键还能再次唤起 AI 识图。
 
+需要记录操作过程时，可以点击设置页的录屏按钮，框选屏幕区域，倒计时后开始录制。停止后直接播放预览，复制视频文件或保存为 MP4；默认快捷键为 `CommandOrControl+Shift+R`。当前仅录制画面，不录声音。
+
 返回窗口本身就是个独立对话——回答完了可以接着追问，AI 看得到之前的上下文；也能把划词内容作为引用带进对话，或者直接把图片发出去，图片会保留在会话历史里，追问时依然看得到。输出是流式的，可以随时打断。思考型模型回复时，思维链会实时显示：推理内容自动换行，在几行高的窗口里滚动展示最新进展，结束后折叠成「思考了 Xs」的摘要，不占正文篇幅。需要查实时信息时打开联网搜索，AI 会自己抓网页，并在回答里附上来源链接。
 
 模型这边可接 **OpenAI-compatible**（自建 endpoint、OpenAI、DeepSeek、月之暗面、智谱、各类第三方代理都行）或 **Anthropic** 官方 API。多套模板可一键切换 endpoint / Key / 模型，每个动作也可以指定自己的模板；API Key 只存在本地。界面支持亮 / 暗 / 跟随系统主题，中英双语都有，结果窗口的默认尺寸、字体和字号也可以在设置里调整。
@@ -35,21 +37,23 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 ## 下载
 
-最新发布版本 **v0.8.2**，可点击直接下载对应平台的安装包：
+最新发布版本 **v0.9.0**，可点击直接下载对应平台的安装包：
 
 | 平台 | 包类型 | 下载 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64-mac.zip) |
-| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Setup-0.8.2.exe) |
-| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Portable-0.8.2.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.9.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.9.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64-mac.zip) |
+| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Setup-0.9.0.exe) |
+| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Portable-0.9.0.exe) |
 
-### v0.8.2 更新
+### v0.9.0 更新
 
-- 修复 Windows **便携版开机自启指向临时解压目录**导致的启动失败（#9）：便携版每次运行都会把自己解压到 `%TEMP%\<随机目录>`，而自启项原先跟着 `process.execPath` 写成了这个临时路径；临时目录被系统清理后，下次登录启动到的是一份残缺副本，主进程在 ESM 解析 `package.json` 阶段就抛 `ENOENT`，连窗口都起不来。现在自启项指向你双击的那个 `.exe`，旧版本写坏的注册表项会在新版本启动时自动覆写
-- 打包流程加入原生模块完整性校验：`selection-hook` / `uiohook-napi` 的 `package.json`、JS 入口或目标平台的 `.node` 若没正确落到 `app.asar.unpacked`，构建直接失败，避免问题包出厂
+- 新增区域录屏：设置页、托盘和全局快捷键启动，支持框选区域或整屏、3 秒倒计时和停止后播放预览。
+- 支持复制视频文件和保存 H.264 MP4，最高 4K / 30 fps；当前不录制声音，单次最长 60 分钟。
+- 控制面板避开录制区域；锁屏或所录显示器配置变化时停止，临时视频保留 7 天，请及时另存。
+- Mac 与 Windows Release 构建均在打包前执行测试，并保留原生模块完整性校验。
 
-v0.8.1 的主要更新（Windows 图标四角白块修复）见 [CHANGELOG](./CHANGELOG.md)。
+v0.8.2 的 Windows 便携版自启修复及更早更新见 [CHANGELOG](./CHANGELOG.md)。
 
 历史版本与全部产物：[GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases)。
 

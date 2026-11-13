@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { AppSettings } from '@shared/types'
 import { IPC } from '@shared/ipc'
 
@@ -84,7 +85,7 @@ describe('region recording lifecycle and file handling', () => {
     expect(result.bytes).toBe(mp4.length)
     expect(await readFile(new URL(result.url))).toEqual(mp4)
     await invoke(IPC.RecordingCopy, recorder)
-    expect(copyRecordingFile).toHaveBeenCalledWith(new URL(result.url).pathname)
+    expect(copyRecordingFile).toHaveBeenCalledWith(fileURLToPath(result.url))
     vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({ canceled: true, filePath: '' })
     expect(await invoke(IPC.RecordingSave, recorder)).toBe(false)
     vi.mocked(dialog.showSaveDialog).mockResolvedValueOnce({ canceled: false, filePath: join(harness.root, 'saved') })

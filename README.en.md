@@ -27,6 +27,8 @@ AIA Selection Assistant lives in your menu bar / system tray. Highlight some tex
 
 It also ships a built-in region screenshot tool: drag to select an area, annotate with pen or arrows (brush size is a quick slider away), then save as PNG, copy to clipboard, pin to the desktop, or hand the image straight to AI for vision-based analysis. Pinned screenshots support wheel zoom, drag-to-move, opacity tweaking, and a right-click menu to re-send them to AI.
 
+To capture an on-screen workflow, click the recording button in Settings, select a region, and start after a three-second countdown. Preview the result, copy the video file, or save it as MP4. The default start/stop shortcut is `CommandOrControl+Shift+R`. Recording currently captures video without audio.
+
 The result window is its own conversation — keep asking follow-ups, AI sees the earlier turns, and output streams in so you can interrupt any time. You can also carry selected text into the conversation as a quoted reference, or send images along: images are kept in the session history, so later follow-ups still see them. With thinking models, the chain of thought streams in live: the latest reasoning wraps and scrolls inside a few-row window, then collapses into a "Thought for Xs" summary once the answer starts. Flip on web search when you need fresh information; AI will fetch pages itself and cite the sources at the bottom of the answer.
 
 For models you can point it at either **OpenAI-compatible** endpoints (your own endpoint, OpenAI, DeepSeek, Moonshot, Zhipu, any third-party proxy) or the **Anthropic** API. Multiple templates let you swap endpoint / key / model in one click, and individual actions can bind to a specific template. API keys stay on disk. Light / dark / system theme modes are supported, the UI ships in English and Chinese, and the result window's default size, font family, and font size can be customized.
@@ -35,21 +37,23 @@ Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.8.2** - grab the installer for your platform:
+Latest published release **v0.9.0** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.8.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.8.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-0.8.2-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Setup-0.8.2.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.8.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.8.2/AIA-Selection-Assistant-Portable-0.8.2.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.9.0-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.9.0-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-0.9.0-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Setup-0.9.0.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.9.0.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.9.0/AIA-Selection-Assistant-Portable-0.9.0.exe) |
 
-### v0.8.2 highlights
+### v0.9.0 highlights
 
-- Fixed the **Windows portable login item pointing at the temp unpack directory** (#9). Portable unpacks itself into `%TEMP%\<random>` on every run, and the login item followed `process.execPath` into that throw-away copy; once system cleanup swept the temp directory, the next login started a half-deleted tree and the main process threw `ENOENT` while resolving `package.json`, before any window existed. The login item now targets the `.exe` you actually launched, and a stale entry written by an older version is overwritten on the next start
-- Packaging now verifies the native modules: if `selection-hook` / `uiohook-napi`'s `package.json`, JS entry, or the target platform's `.node` is not correctly placed under `app.asar.unpacked`, the build fails instead of shipping a broken installer
+- Region recording from Settings, the tray, or a configurable shortcut, with region/full-display selection, a three-second countdown, and playback preview.
+- Copy the video file or save H.264 MP4, up to 4K / 30 fps and 60 minutes per recording. Video only; no audio.
+- Controls stay outside the crop. Screen lock or recorded-display changes stop capture; temporary files remain for seven days, so save a permanent copy when needed.
+- macOS and Windows release jobs run tests before packaging and retain native-module integrity checks.
 
-For the v0.8.1 fix (white icon corners on Windows), see the [CHANGELOG](./CHANGELOG.md).
+For the v0.8.2 Windows portable login-item fix and earlier updates, see the [CHANGELOG](./CHANGELOG.md).
 
 For older versions and full asset lists, see [GitHub Releases](https://github.com/zcx960/AIA-selection-assistan/releases).
 
