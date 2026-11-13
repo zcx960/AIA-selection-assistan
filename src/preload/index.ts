@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '@shared/ipc'
+import type { RecordingInit, RecordingOverlayInit, RecordingResult, RecordingSelection } from '@shared/recording'
 import type {
   ActionPayload,
   AiChunkPayload,
@@ -13,6 +14,24 @@ import type {
 } from '@shared/types'
 
 const api = {
+  recording: {
+    start: (): Promise<void> => ipcRenderer.invoke(IPC.RecordingStart),
+    overlayReady: (): Promise<RecordingOverlayInit> => ipcRenderer.invoke(IPC.RecordingOverlayReady),
+    select: (selection: RecordingSelection): Promise<void> => ipcRenderer.invoke(IPC.RecordingSelect, selection),
+    cancel: (): Promise<void> => ipcRenderer.invoke(IPC.RecordingCancel),
+    ready: (): Promise<RecordingInit> => ipcRenderer.invoke(IPC.RecordingReady),
+    started: (): Promise<void> => ipcRenderer.invoke(IPC.RecordingStarted),
+    append: (data: Uint8Array): Promise<void> => ipcRenderer.invoke(IPC.RecordingAppend, data),
+    finish: (size: { width: number; height: number }): Promise<RecordingResult> => ipcRenderer.invoke(IPC.RecordingFinish, size),
+    failed: (): Promise<void> => ipcRenderer.invoke(IPC.RecordingFailed),
+    save: (): Promise<boolean> => ipcRenderer.invoke(IPC.RecordingSave),
+    copy: (): Promise<boolean> => ipcRenderer.invoke(IPC.RecordingCopy),
+    onStop: (callback: () => void) => {
+      const listener = () => callback()
+      ipcRenderer.on(IPC.RecordingStop, listener)
+      return () => { ipcRenderer.off(IPC.RecordingStop, listener) }
+    }
+  },
   settings: {
     get: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.SettingsGet),
     update: (patch: SettingsPatch): Promise<AppSettings> => ipcRenderer.invoke(IPC.SettingsUpdate, patch),

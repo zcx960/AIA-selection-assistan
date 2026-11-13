@@ -14,6 +14,7 @@ import { abortStream, findRacingStreams, registerStream, unregisterStream } from
 import { appendStatsRecord, type StatsRecord } from './statsStore'
 import { startHotkeyCapture, stopHotkeyCapture } from './hotkeyCapture'
 import { ScreenshotService } from './ScreenshotService'
+import { RecordingService } from './RecordingService'
 import { SelectionService } from './SelectionService'
 import { SpeechService } from './SpeechService'
 import { getSettings, onSettingsChanged, updateSettings } from './settingsStore'
@@ -85,6 +86,7 @@ const selectionService = new SelectionService(getSettings, preloadPath, renderer
   if (tray && isWin) tray.displayBalloon({ title, content: message })
 })
 const screenshotService = new ScreenshotService(getSettings, preloadPath, rendererDir, appIcon)
+const recordingService = new RecordingService(getSettings, preloadPath, rendererDir, appIcon, refreshTrayMenu)
 const speechService = new SpeechService()
 
 function getTrayIcon(): Electron.NativeImage {
@@ -238,6 +240,12 @@ function refreshTrayMenu(): void {
       },
       { label: mainText('settings', settings.language), click: () => createSettingsWindow() },
       { label: mainText('chat', settings.language), click: () => openChatWindow('tray') },
+      {
+        label: recordingService.active
+          ? (settings.language === 'zh-CN' ? '停止录屏 / 查看进度' : 'Stop recording / View progress')
+          : (settings.language === 'zh-CN' ? '区域录屏' : 'Record a region'),
+        click: () => void recordingService.toggle()
+      },
       { label: mainText('stopSpeech', settings.language), click: () => speechService.stop() },
       { type: 'separator' },
       {
@@ -273,6 +281,10 @@ function registerShortcuts(): void {
       action: () => {
         void screenshotService.startCapture()
       }
+    },
+    {
+      accelerator: settings.shortcuts.recordScreen,
+      action: () => { void recordingService.toggle() }
     },
     {
       accelerator: settings.shortcuts.chat,
@@ -352,6 +364,7 @@ function applySelectionState(settings = getSettings()): void {
 function registerIpc(): void {
   selectionService.registerIpc()
   screenshotService.registerIpc()
+  recordingService.registerIpc()
 
   ipcMain.handle(IPC.SettingsGet, () => getSettings())
   ipcMain.handle(IPC.SettingsUpdate, (_event, patch: SettingsPatch) => {
@@ -625,6 +638,7 @@ if (!app.requestSingleInstanceLock()) {
   // isQuitting above — flip it here so close→hide windows don't block quit.
   app.on('before-quit', () => {
     isQuitting = true
+    recordingService.dispose()
     selectionService.prepareExit()
   })
   app.on('will-quit', () => {
@@ -632,6 +646,7 @@ if (!app.requestSingleInstanceLock()) {
     globalShortcut.unregisterAll()
     selectionService.dispose()
     screenshotService.dispose()
+    recordingService.dispose()
     speechService.dispose()
   })
 }

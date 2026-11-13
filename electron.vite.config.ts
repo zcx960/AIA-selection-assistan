@@ -53,6 +53,8 @@ export default defineConfig({
           screenshotOverlay: resolve(__dirname, 'src/renderer/screenshotOverlay.html'),
           screenshotPreview: resolve(__dirname, 'src/renderer/screenshotPreview.html'),
           screenshotPin: resolve(__dirname, 'src/renderer/screenshotPin.html'),
+          recordingOverlay: resolve(__dirname, 'src/renderer/recordingOverlay.html'),
+          recording: resolve(__dirname, 'src/renderer/recording.html'),
           chat: resolve(__dirname, 'src/renderer/chat.html')
         }
       }

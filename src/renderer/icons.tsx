@@ -290,6 +290,7 @@ function Minus({ size = 16, strokeWidth = 2 }: IconProps) {
 }
 
 const icons: Record<string, (props: IconProps) => React.JSX.Element> = {
+  video: ({ size = 16, strokeWidth = 2 }) => <svg {...baseProps(size)} strokeWidth={strokeWidth}><rect x="3" y="6" width="12" height="12" rx="2" /><path d="m15 10 6-3v10l-6-3Z" /></svg>,
   'circle-help': CircleHelp,
   'arrow-up': ArrowUp,
   'arrow-up-right': ArrowUpRight,

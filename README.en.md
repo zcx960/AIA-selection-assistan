@@ -67,6 +67,7 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - Floating toolbar appears after text selection
 - System TTS can read selected text aloud on macOS and Windows
 - Built-in region screenshot: pin to desktop, copy, save, or hand it to AI for image understanding
+- Region screen recording with preview, video-file clipboard copy and H.264 MP4 saving
 - Standalone AI chat window with multi-turn context and streaming follow-ups
 - Carry selected text into the conversation as a quoted reference; send images that persist in the session history
 - Replace the original selection with the Polish result in one click (Windows x64, Polish action only)
@@ -126,6 +127,17 @@ For older versions and full asset lists, see [GitHub Releases](https://github.co
 - After capture: send to AI, copy to clipboard, save as PNG, or pin to the desktop
 - Pinned images support wheel zoom, drag-to-move, and a right-click menu for opacity / reset / close
 - The pin's right-click menu can also send the image straight into the AI image-understanding chat
+
+### Region recording
+
+- Click the recording icon in Settings or choose **Record a region** from the tray menu
+- `CommandOrControl+Shift+R` starts / stops recording; configure it in Selection → Shortcuts
+- Drag on any display, or select the entire display. Press `Enter` to confirm and `Esc` to cancel; recording begins after a three-second countdown
+- Controls stay outside the crop and hide when there is no space during fullscreen capture; stop from the tray or shortcut
+- Preview the result, copy the video file to apps that accept file paste, or save it as MP4
+- Video only (no audio), 30 fps, H.264 MP4 up to 4K, with a 60-minute limit per recording
+- Temporary files stay in the app data `recordings` folder for seven days, then expire on a later recording start. Save a copy for permanent storage
+- macOS requires screen recording permission. Locking the screen or changing the recorded display stops capture
 
 ### AI Chat and Follow-up
 

@@ -40,6 +40,19 @@ export const IPC = {
 
   ChatOpen: 'chat:open',
 
+  RecordingStart: 'recording:start',
+  RecordingOverlayReady: 'recording:overlay-ready',
+  RecordingSelect: 'recording:select',
+  RecordingCancel: 'recording:cancel',
+  RecordingReady: 'recording:ready',
+  RecordingStarted: 'recording:started',
+  RecordingAppend: 'recording:append',
+  RecordingFinish: 'recording:finish',
+  RecordingFailed: 'recording:failed',
+  RecordingStop: 'recording:stop',
+  RecordingSave: 'recording:save',
+  RecordingCopy: 'recording:copy',
+
   ScreenshotStart: 'screenshot:start',
   ScreenshotOverlayReady: 'screenshot:overlay-ready',
   ScreenshotOverlayInit: 'screenshot:overlay-init',

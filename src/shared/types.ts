@@ -39,6 +39,7 @@ export interface ShortcutSettings {
   toggleAssistant: string
   processSelection: string
   captureScreen: string
+  recordScreen: string
   chat: string
 }
 

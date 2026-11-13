@@ -122,6 +122,7 @@ export const defaultSettings: AppSettings = {
     toggleAssistant: 'CommandOrControl+Shift+Space',
     processSelection: 'CommandOrControl+Shift+S',
     captureScreen: 'CommandOrControl+Shift+A',
+    recordScreen: 'CommandOrControl+Shift+R',
     chat: 'CommandOrControl+Shift+C'
   },
   actions: defaultActions

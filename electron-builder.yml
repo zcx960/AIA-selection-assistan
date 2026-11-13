@@ -26,6 +26,7 @@ mac:
     - dmg
     - zip
   extendInfo:
+    NSScreenCaptureUsageDescription: AIA划词助手需要屏幕录制权限来截取和录制您选择的区域。
     NSAppleEventsUsageDescription: AIA划词助手 uses accessibility APIs to detect selected text.
     NSSystemAdministrationUsageDescription: AIA划词助手 needs accessibility permission to detect selected text.
 dmg:

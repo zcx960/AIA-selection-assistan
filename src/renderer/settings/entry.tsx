@@ -188,6 +188,11 @@ function findShortcutConflict(
       key: 'shortcut:chat',
       accelerator: settings.shortcuts.chat,
       label: t('shortcutChat')
+    },
+    {
+      key: 'shortcut:recordScreen',
+      accelerator: settings.shortcuts.recordScreen,
+      label: settings.language === 'zh-CN' ? '区域录屏' : 'Region recording'
     }
   ]
   for (const action of settings.actions) {
@@ -936,6 +941,18 @@ function SettingsApp() {
                 t={t}
               />
             </SettingRow>
+            <SettingRow
+              title={settings.language === 'zh-CN' ? '区域录屏 / 停止录制' : 'Record a region / Stop recording'}
+              description={settings.language === 'zh-CN' ? '框选区域录制画面，完成后复制视频或保存 MP4。' : 'Select a region, record video, then copy or save as MP4.'}
+              className="shortcut-row">
+              <ShortcutRecorder
+                value={settings.shortcuts.recordScreen}
+                label={settings.language === 'zh-CN' ? '区域录屏' : 'Region recording'}
+                conflictText={shortcutConflict?.targetKey === 'shortcut:recordScreen' ? shortcutConflict.text : undefined}
+                onChange={(value) => updateShortcut('recordScreen', value)}
+                t={t}
+              />
+            </SettingRow>
           </SettingSection>
 
           <SettingSection title={t('actionShortcutsGroup')}>
@@ -1217,6 +1234,14 @@ function SettingsApp() {
               </button>
             </div>
             <div className="status-control">
+              <button
+                type="button"
+                className="theme-toggle"
+                title={settings.language === 'zh-CN' ? '区域录屏' : 'Record a region'}
+                aria-label={settings.language === 'zh-CN' ? '区域录屏' : 'Record a region'}
+                onClick={() => void window.assistantLite.recording.start()}>
+                <Icon name="video" size={16} />
+              </button>
               <button
                 type="button"
                 className={settings.autoLaunch ? 'theme-toggle active' : 'theme-toggle'}
