@@ -37,14 +37,20 @@ AIA划词助手是一个常驻菜单栏 / 系统托盘的小工具。在任意�
 
 ## 下载
 
-最新发布版本 **v0.10.1**，可点击直接下载对应平台的安装包：
+最新发布版本 **v0.10.2**，可点击直接下载对应平台的安装包：
 
 | 平台 | 包类型 | 下载 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64-mac.zip) |
-| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Setup-0.10.1.exe) |
-| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Portable-0.10.1.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-0.10.2-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-0.10.2-arm64-mac.zip) |
+| Windows x64 | 安装版 | [AIA-Selection-Assistant-Setup-0.10.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-Setup-0.10.2.exe) |
+| Windows x64 | 便携版 | [AIA-Selection-Assistant-Portable-0.10.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-Portable-0.10.2.exe) |
+
+### v0.10.2 更新
+
+- 移除本地 ACP Agent 的连接提示，Agent 状态不再误显示为「联网搜索」。
+- 聊天、划词结果、截图识图只在实际搜索时显示搜索提示，并在回答、思考、完成、失败或手动停止后及时清除。
+- 保留思考与错误信息；174 项自动化测试及类型检查、生产构建通过。
 
 ### v0.10.1 更新
 

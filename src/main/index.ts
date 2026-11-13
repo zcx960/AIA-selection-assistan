@@ -563,6 +563,7 @@ function registerIpc(): void {
               safeSend({
                 requestId: request.requestId,
                 type: 'status',
+                statusKind: 'web-search',
                 text: decision.query
               })
               const results = await searchExa(decision.query, controller.signal)
@@ -584,12 +585,11 @@ function registerIpc(): void {
         if (delta.reasoning) safeSend({ requestId: request.requestId, type: 'reasoning', reasoning: delta.reasoning })
       }
       if (provider.apiType === 'acp') {
-        safeSend({ requestId: request.requestId, type: 'status', text: settings.language === 'zh-CN' ? '正在连接本地 Agent…' : 'Connecting to local agent…' })
         const connection = await connectAgent(provider, await acpWorkspace(), controller.signal, requestAcpPermission)
         try {
           await connection.selectModel(provider.model)
           await streamAcp(connection, messages, systemPrompt, onDelta,
-            (text) => safeSend({ requestId: request.requestId, type: 'status', text }))
+            (text) => safeSend({ requestId: request.requestId, type: 'status', statusKind: 'agent', text }))
         } finally { connection.close() }
       } else await streamChatMessages(
         provider,

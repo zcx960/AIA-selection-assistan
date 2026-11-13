@@ -255,6 +255,7 @@ function ChatApp() {
         // ignored by every window" into a compile error.
         switch (chunk.type) {
           case 'delta': {
+            last.searchQuery = undefined
             last.text += chunk.text ?? ''
             if (last.reasoningStart !== undefined && last.reasoningTime === undefined) {
               last.reasoningTime = (Date.now() - last.reasoningStart) / 1000
@@ -263,18 +264,21 @@ function ChatApp() {
             break
           }
           case 'reasoning': {
+            last.searchQuery = undefined
             last.reasoning = (last.reasoning ?? '') + (chunk.reasoning ?? '')
             if (last.reasoningStart === undefined) last.reasoningStart = Date.now()
             last.pending = true
             break
           }
           case 'status':
-            last.searchQuery = chunk.text ?? ''
+            last.searchQuery = chunk.statusKind === 'web-search' ? chunk.text : undefined
             break
           case 'done':
+            last.searchQuery = undefined
             last.pending = false
             break
           case 'error':
+            last.searchQuery = undefined
             last.pending = false
             last.error = chunk.error ?? t('unknownProviderError')
             break
@@ -497,7 +501,7 @@ function ChatApp() {
             }
             return (
               <div key={index} className="result markdown-body">
-                {turn.searchQuery && (
+                {turn.pending && turn.searchQuery && (
                   <div className="search-status">
                     {isZh ? `🔍 联网搜索：${turn.searchQuery}` : `🔍 Web search: ${turn.searchQuery}`}
                   </div>

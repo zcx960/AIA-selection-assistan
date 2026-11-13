@@ -183,6 +183,8 @@ export interface AiStreamRequest {
 export interface AiChunkPayload {
   requestId: string
   type: 'delta' | 'reasoning' | 'done' | 'error' | 'status'
+  /** Only actual web-search status belongs in the search indicator. */
+  statusKind?: 'web-search' | 'agent'
   text?: string
   /** Streamed chain-of-thought fragment (type === 'reasoning' only). */
   reasoning?: string

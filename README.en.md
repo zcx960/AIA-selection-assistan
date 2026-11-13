@@ -37,14 +37,20 @@ Currently runs on macOS and Windows.
 
 ## Download
 
-Latest published release **v0.10.1** - grab the installer for your platform:
+Latest published release **v0.10.2** - grab the installer for your platform:
 
 | Platform | Package | Link |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.1-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64.dmg) |
-| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.1-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-0.10.1-arm64-mac.zip) |
-| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Setup-0.10.1.exe) |
-| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.10.1.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.1/AIA-Selection-Assistant-Portable-0.10.1.exe) |
+| macOS (Apple Silicon) | `.dmg` | [AIA-Selection-Assistant-0.10.2-arm64.dmg](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-0.10.2-arm64.dmg) |
+| macOS (Apple Silicon) | `.zip` | [AIA-Selection-Assistant-0.10.2-arm64-mac.zip](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-0.10.2-arm64-mac.zip) |
+| Windows x64 | Installer | [AIA-Selection-Assistant-Setup-0.10.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-Setup-0.10.2.exe) |
+| Windows x64 | Portable | [AIA-Selection-Assistant-Portable-0.10.2.exe](https://github.com/zcx960/AIA-selection-assistan/releases/download/v0.10.2/AIA-Selection-Assistant-Portable-0.10.2.exe) |
+
+### v0.10.2 highlights
+
+- Remove the local ACP agent connection notice and stop labeling agent status as web search.
+- Chat, selection results, and screenshot explanation show search progress only for actual searches, clearing it on replies, reasoning, completion, errors, or manual stop.
+- Keep thinking and error feedback. All 174 automated tests, type checks, and the production build pass.
 
 ### v0.10.1 highlights
 

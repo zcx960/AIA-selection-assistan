@@ -104,7 +104,7 @@ export class AcpConnection {
   }
   async initialize(cwd: string): Promise<void> {
     this.initialization = await this.request('initialize', {
-      protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: 'aia-selection-assistant', version: '0.10.1' }
+      protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: 'aia-selection-assistant', version: '0.10.2' }
     })
     if (this.initialization?.protocolVersion !== 1) throw new Error(`Unsupported ACP protocol version: ${this.initialization?.protocolVersion}`)
     try { this.session = await this.request('session/new', { cwd, mcpServers: [] }) }
